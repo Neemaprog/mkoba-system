@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - M-Koba System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            min-height: 100vh;
+            border-radius: 20px 0 0 20px;
+            padding: 30px;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .settings-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .settings-card .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            border: none;
+            padding: 15px 20px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .form-switch .form-check-input {
+            width: 50px;
+            height: 25px;
+        }
+        
+        .form-switch .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-3">
+                <h4 class="mb-4"><i class="fas fa-cog me-2"></i>M-Koba</h4>
+                <nav class="nav flex-column">
+                    <a href="/admin/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="/admin/groups-management" class="nav-link">
+                        <i class="fas fa-users me-2"></i>Groups Management
+                    </a>
+                    <a href="/admin/members" class="nav-link">
+                        <i class="fas fa-user me-2"></i>Members
+                    </a>
+                    <a href="/admin/savings" class="nav-link">
+                        <i class="fas fa-piggy-bank me-2"></i>Savings
+                    </a>
+                    <a href="/admin/loans" class="nav-link">
+                        <i class="fas fa-hand-holding-usd me-2"></i>Loans
+                    </a>
+                    <a href="/admin/transactions" class="nav-link">
+                        <i class="fas fa-exchange-alt me-2"></i>Transactions
+                    </a>
+                    <a href="/admin/reports" class="nav-link">
+                        <i class="fas fa-chart-bar me-2"></i>Reports
+                    </a>
+                    <a href="/admin/settings" class="nav-link active">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1><i class="fas fa-cog me-3"></i>System Settings</h1>
+                    <p class="mb-0 opacity-75">Configure system preferences and parameters</p>
+                </div>
+                
+                <!-- Success/Error Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <!-- Settings Form -->
+                <form th:action="@{/admin/settings}" method="post">
+                    <!-- General Settings -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-cog me-2"></i>General Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="systemName" class="form-label">System Name</label>
+                                    <input type="text" class="form-control" id="systemName" name="systemName" 
+                                           th:value="${systemName}" placeholder="Enter system name">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="systemVersion" class="form-label">System Version</label>
+                                    <input type="text" class="form-control" id="systemVersion" name="systemVersion" 
+                                           th:value="${systemVersion}" readonly>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label for="databaseUrl" class="form-label">Database URL</label>
+                                    <input type="text" class="form-control" id="databaseUrl" name="databaseUrl" 
+                                           th:value="${databaseUrl}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- File Settings -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-file me-2"></i>File Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="maxFileSize" class="form-label">Maximum File Size</label>
+                                    <select class="form-select" id="maxFileSize" name="maxFileSize">
+                                        <option value="5MB" th:selected="${maxFileSize == '5MB'}">5MB</option>
+                                        <option value="10MB" th:selected="${maxFileSize == '10MB'}">10MB</option>
+                                        <option value="20MB" th:selected="${maxFileSize == '20MB'}">20MB</option>
+                                        <option value="50MB" th:selected="${maxFileSize == '50MB'}">50MB</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
+                                    <select class="form-select" id="sessionTimeout" name="sessionTimeout">
+                                        <option value="15" th:selected="${sessionTimeout == '15'}">15 minutes</option>
+                                        <option value="30" th:selected="${sessionTimeout == '30'}">30 minutes</option>
+                                        <option value="60" th:selected="${sessionTimeout == '60'}">1 hour</option>
+                                        <option value="120" th:selected="${sessionTimeout == '120'}">2 hours</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notification Settings -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Notification Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="emailNotifications" 
+                                               name="emailNotifications" value="true" 
+                                               th:checked="${emailNotifications == 'true'}">
+                                        <label class="form-check-label" for="emailNotifications">
+                                            Email Notifications
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Enable email notifications for system events</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="smsNotifications" 
+                                               name="smsNotifications" value="true" 
+                                               th:checked="${smsNotifications == 'true'}">
+                                        <label class="form-check-label" for="smsNotifications">
+                                            SMS Notifications
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Enable SMS notifications for important events</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Settings -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-server me-2"></i>System Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="backupFrequency" class="form-label">Backup Frequency</label>
+                                    <select class="form-select" id="backupFrequency" name="backupFrequency">
+                                        <option value="hourly" th:selected="${backupFrequency == 'hourly'}">Hourly</option>
+                                        <option value="daily" th:selected="${backupFrequency == 'daily'}">Daily</option>
+                                        <option value="weekly" th:selected="${backupFrequency == 'weekly'}">Weekly</option>
+                                        <option value="monthly" th:selected="${backupFrequency == 'monthly'}">Monthly</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="maintenanceMode" 
+                                               name="maintenanceMode" value="true" 
+                                               th:checked="${maintenanceMode == 'true'}">
+                                        <label class="form-check-label" for="maintenanceMode">
+                                            Maintenance Mode
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Enable maintenance mode to restrict user access</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Save Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-save btn-lg">
+                            <i class="fas fa-save me-2"></i>Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

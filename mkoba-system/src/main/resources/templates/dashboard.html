@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - M-Koba</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            border-left: 4px solid #667eea;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card .icon {
+            font-size: 2.5rem;
+            color: #667eea;
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .badge-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .amount-positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .amount-negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-piggy-bank"></i> M-Koba
+                    </h4>
+                    
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <i class="fas fa-user-circle fa-3x"></i>
+                            <span class="notification-badge">3</span>
+                        </div>
+                        <h6 class="mt-2" th:text="${user.fullName}">Jina La Mwanachama</h6>
+                        <small th:text="${user.role.displayName}">Mwanachama</small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="/dashboard/profile">
+                            <i class="fas fa-user"></i> Wasifu Wangu
+                        </a>
+                        <a class="nav-link" href="/dashboard/savings">
+                            <i class="fas fa-coins"></i> Akiba na Michango
+                        </a>
+                        <a class="nav-link" href="/dashboard/loans">
+                            <i class="fas fa-hand-holding-usd"></i> Mikopo
+                        </a>
+                        <a class="nav-link" href="/dashboard/transactions">
+                            <i class="fas fa-exchange-alt"></i> Miamala
+                        </a>
+                        <a class="nav-link position-relative" href="/dashboard/notifications">
+                            <i class="fas fa-bell"></i> Notifications
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" th:if="${unreadCount > 0}" th:text="${unreadCount}">3</span>
+                        </a>
+                        <a class="nav-link" href="/dashboard/group-info">
+                            <i class="fas fa-users"></i> Taarifa ya Kikundi
+                        </a>
+                        <a class="nav-link" href="/dashboard/reports">
+                            <i class="fas fa-file-download"></i> Ripoti
+                        </a>
+                        <a class="nav-link text-danger" href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> Toka
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2><i class="fas fa-user-circle"></i> Karibu, <span th:text="${user.firstName}">Jina</span>!</h2>
+                            <p class="mb-1">
+                                <i class="fas fa-phone"></i> <span th:text="${user.phoneNumber}">+255 123 456 789</span> |
+                                <i class="fas fa-users"></i> <span th:text="${group.name}">Jina la Kikundi</span> |
+                                <i class="fas fa-briefcase"></i> <span th:text="${user.role.displayName}">Nafasi</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-light">
+                                <i class="fas fa-bell"></i> Tahadhari
+                                <span class="badge bg-danger ms-1">3</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Financial Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted">Salio la Akiba</h6>
+                                    <h3 class="amount-positive">
+                                        Tsh <span th:text="${#numbers.formatDecimal(totalSavings, 0, 'COMMA', 2, 'POINT')}">0.00</span>
+                                    </h3>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-piggy-bank"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted">Deni Lililobaki</h6>
+                                    <h3 class="amount-negative">
+                                        Tsh <span th:text="${#numbers.formatDecimal(totalOutstanding, 0, 'COMMA', 2, 'POINT')}">0.00</span>
+                                    </h3>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-hand-holding-usd"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted">Salio Lililobaki</h6>
+                                    <h3>
+                                        Tsh <span th:text="${#numbers.formatDecimal(totalSavings - totalOutstanding, 0, 'COMMA', 2, 'POINT')}">0.00</span>
+                                    </h3>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="/dashboard/loans" class="btn btn-primary">
+                                <i class="fas fa-plus-circle"></i> Omba Mkopo
+                            </a>
+                            <a href="/dashboard/savings" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Fanya Mchango
+                            </a>
+                            <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#loanRepaymentModal">
+                                <i class="fas fa-credit-card"></i> Lipa Mkopo
+                            </button>
+                            <a href="/dashboard/reports" class="btn btn-secondary">
+                                <i class="fas fa-download"></i> Pakua Ripoti
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Activities Tables -->
+                <div class="row">
+                    <!-- Recent Savings -->
+                    <div class="col-md-6">
+                        <div class="table-container">
+                            <h5><i class="fas fa-coins text-success"></i> Michango ya Karibuni</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarehe</th>
+                                            <th>Aina</th>
+                                            <th>Kiasi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="saving : ${recentSavings}">
+                                            <td th:text="${#temporals.format(saving.contributionDate, 'dd/MM/yyyy')}">01/01/2024</td>
+                                            <td th:text="${saving.type.displayName}">Mchango</td>
+                                            <td class="amount-positive" th:text="${#numbers.formatDecimal(saving.amount, 0, 'COMMA', 2, 'POINT')}">50,000.00</td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(recentSavings)}">
+                                            <td colspan="3" class="text-center text-muted">Hakuna michango bado</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end">
+                                <a href="/dashboard/savings" class="btn btn-sm btn-outline-primary">Ona Zaidi</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Loans -->
+                    <div class="col-md-6">
+                        <div class="table-container">
+                            <h5><i class="fas fa-hand-holding-usd text-warning"></i> Mikopo ya Karibuni</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarehe</th>
+                                            <th>Kiasi</th>
+                                            <th>Hali</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="loan : ${recentLoans}">
+                                            <td th:text="${#temporals.format(loan.applicationDate, 'dd/MM/yyyy')}">01/01/2024</td>
+                                            <td th:text="${#numbers.formatDecimal(loan.amount, 0, 'COMMA', 2, 'POINT')}">100,000.00</td>
+                                            <td>
+                                                <span class="badge badge-status" 
+                                                      th:classappend="${loan.status.name() == 'ACTIVE' ? 'bg-success' : 
+                                                                     loan.status.name() == 'PENDING' ? 'bg-warning' : 
+                                                                     loan.status.name() == 'COMPLETED' ? 'bg-info' : 'bg-danger'}"
+                                                      th:text="${loan.status.displayName}">Hali</span>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(recentLoans)}">
+                                            <td colspan="3" class="text-center text-muted">Hakuna mikopo bado</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end">
+                                <a href="/dashboard/loans" class="btn btn-sm btn-outline-primary">Ona Zaidi</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Transactions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="table-container">
+                            <h5><i class="fas fa-exchange-alt text-info"></i> Miamala ya Karibuni</h5>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarehe</th>
+                                            <th>Aina ya Miamala</th>
+                                            <th>Maelezo</th>
+                                            <th>Kiasi</th>
+                                            <th>Hali</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="transaction : ${recentTransactions}">
+                                            <td th:text="${#temporals.format(transaction.transactionDate, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:30</td>
+                                            <td th:text="${transaction.type.displayName}">Aina</td>
+                                            <td th:text="${transaction.description}">Maelezo</td>
+                                            <td th:classappend="${transaction.type.name() == 'SAVINGS_CONTRIBUTION' or transaction.type.name() == 'REFUND' ? 'amount-positive' : 'amount-negative'}"
+                                                th:text="${#numbers.formatDecimal(transaction.amount, 0, 'COMMA', 2, 'POINT')}">50,000.00</td>
+                                            <td>
+                                                <span class="badge badge-status bg-success" th:text="${transaction.status.displayName}">Imekamilika</span>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(recentTransactions)}">
+                                            <td colspan="5" class="text-center text-muted">Hakuna miamala bado</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end">
+                                <a href="/dashboard/transactions" class="btn btn-sm btn-outline-primary">Ona Zaidi</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reminders Section -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert alert-warning" role="alert">
+                            <h5><i class="fas fa-bell"></i> Vikumbusho</h5>
+                            <ul class="mb-0">
+                                <li>Kumbuka kufanya mchango wako wa mwezi huu kabla ya tarehe 30</li>
+                                <li>Unalo mkopo unalohitaji kulipwa ndani ya siku 7</li>
+                                <li>Kikundi kitakutana Jumamosi ijayo saa 2:00 alasiri</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loan Repayment Modal -->
+    <div class="modal fade" id="loanRepaymentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-credit-card"></i> Lipa Mkopo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loanRepaymentForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="loanSelect" class="form-label">Chagua Mkopo</label>
+                                <select class="form-select" id="loanSelect" required>
+                                    <option value="">-- Chagua Mkopo --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="repaymentAmount" class="form-label">Kiasi cha Malipo</label>
+                                <input type="number" class="form-control" id="repaymentAmount" step="0.01" min="0" required>
+                                <small class="text-muted">Kiasi kinachobaki: <span id="remainingBalance">0</span></small>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="paymentMethod" class="form-label">Njia ya Malipo</label>
+                                <select class="form-select" id="paymentMethod" required>
+                                    <option value="">-- Chagua Njia --</option>
+                                    <option value="MOBILE_MONEY">M-Pesa/Tigo Pesa/Airtel Money</option>
+                                    <option value="BANK">Benki</option>
+                                    <option value="CASH">Pesa Taslimu</option>
+                                    <option value="CONTROL_NUMBER">Namba ya Udhibiti</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="paymentReference" class="form-label">Namba ya Rejeleo</label>
+                                <input type="text" class="form-control" id="paymentReference" placeholder="Namba ya simu, akaunti ya benki, au namba ya udhibiti" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="repaymentDate" class="form-label">Tarehe ya Malipo</label>
+                                <input type="date" class="form-control" id="repaymentDate" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="repaymentDescription" class="form-label">Maelezo ya Malipo</label>
+                                <textarea class="form-control" id="repaymentDescription" rows="3" placeholder="Andika maelezo ya malipo yako"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-info-circle"></i> Maelekezo ya Malipo:</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>M-Pesa/Tigo Pesa/Airtel Money:</strong> Tuma kwa namba ya kikundi</li>
+                                        <li><strong>Benki:</strong> Weka kwa akaunti ya benki ya kikundi</li>
+                                        <li><strong>Pesa Taslimu:</strong> Lipa kwa katibu wa kikundi</li>
+                                        <li><strong>Namba ya Udhibiti:</strong> Tumia namba ya udhibiti ya kikundi</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Funga
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="submitLoanRepayment()">
+                        <i class="fas fa-credit-card"></i> Lipa Sasa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load user's active loans when modal opens
+        document.getElementById('loanRepaymentModal').addEventListener('show.bs.modal', function () {
+            loadUserLoans();
+        });
+        
+        // Load user loans for repayment
+        function loadUserLoans() {
+            fetch('/dashboard/api/user-loans')
+                .then(response => response.json())
+                .then(data => {
+                    const loanSelect = document.getElementById('loanSelect');
+                    loanSelect.innerHTML = '<option value="">-- Chagua Mkopo --</option>';
+                    
+                    if (data.success && data.loans) {
+                        data.loans.forEach(loan => {
+                            const option = document.createElement('option');
+                            option.value = loan.id;
+                            option.textContent = `Mkopo #${loan.id} - Tsh ${loan.amount.toLocaleString('sw-TZ')} (Kinasubiri: Tsh ${loan.remainingBalance.toLocaleString('sw-TZ')})`;
+                            option.dataset.remainingBalance = loan.remainingBalance;
+                            loanSelect.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading loans:', error);
+                });
+        }
+        
+        // Update remaining balance when loan is selected
+        document.getElementById('loanSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const remainingBalance = selectedOption.dataset.remainingBalance || 0;
+            document.getElementById('remainingBalance').textContent = 'Tsh ' + parseFloat(remainingBalance).toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+        });
+        
+        // Set today's date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('repaymentDate').value = today;
+        });
+        
+        // Submit loan repayment
+        function submitLoanRepayment() {
+            const loanId = document.getElementById('loanSelect').value;
+            const amount = document.getElementById('repaymentAmount').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const paymentReference = document.getElementById('paymentReference').value;
+            const repaymentDate = document.getElementById('repaymentDate').value;
+            const description = document.getElementById('repaymentDescription').value;
+            
+            // Validation
+            if (!loanId || !amount || !paymentMethod || !paymentReference || !repaymentDate) {
+                alert('Tafadhali jaza sehemu zote zinazohitajika.');
+                return;
+            }
+            
+            if (parseFloat(amount) <= 0) {
+                alert('Kiasi cha malipo kiwe zaidi ya sifuri.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.querySelector('[onclick="submitLoanRepayment()"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inatuma...';
+            submitBtn.disabled = true;
+            
+            // Prepare repayment data
+            const repaymentData = {
+                loanId: parseInt(loanId),
+                amount: parseFloat(amount),
+                paymentMethod: paymentMethod,
+                paymentReference: paymentReference,
+                repaymentDate: repaymentDate,
+                description: description
+            };
+            
+            // Send to backend
+            fetch('/dashboard/api/loan-repayment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(repaymentData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Malipo yako ya mkopo yamefanikiwa kikamilifu!');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('loanRepaymentModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    document.getElementById('loanRepaymentForm').reset();
+                    document.getElementById('remainingBalance').textContent = 'Tsh 0';
+                    
+                    // Reload page to show updated data
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    alert('Imeshindikana kutuma malipo: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Kuna tatizo limetokea wakati wa kutuma malipo.');
+            })
+            .finally(() => {
+                // Restore button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+        
+        // Auto-refresh dashboard data every 30 seconds
+        setInterval(function() {
+            fetch('/dashboard/api/summary')
+                .then(response => response.json())
+                .then(data => {
+                    // Update the financial summary cards
+                    document.querySelector('.stat-card:nth-child(1) h3').innerHTML = 
+                        'Tsh ' + data.totalSavings.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+                    document.querySelector('.stat-card:nth-child(2) h3').innerHTML = 
+                        'Tsh ' + data.totalOutstanding.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+                    document.querySelector('.stat-card:nth-child(3) h3').innerHTML = 
+                        'Tsh ' + data.availableBalance.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+                });
+        }, 30000);
+    </script>
+</body>
+</html>

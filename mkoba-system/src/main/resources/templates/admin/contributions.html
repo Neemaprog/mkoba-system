@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributions Management | M-Koba System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-bg: #ecf0f1;
+            --border-color: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar h4 {
+            margin-bottom: 30px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+            background: white;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .page-header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .contributions-header {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .filter-group select {
+            min-width: 150px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-custom {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary-custom {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success-custom {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success-custom:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .contributions-table {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .table thead th {
+            border: none;
+            padding: 15px 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .table tbody td {
+            padding: 15px 12px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-late {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn-view {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .action-btn-view:hover {
+            background: #bbdefb;
+        }
+
+        .action-btn-record {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .action-btn-record:hover {
+            background: #ffe0b2;
+        }
+
+        .action-btn-penalize {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .action-btn-penalize:hover {
+            background: #ffcdd2;
+        }
+
+        .total-section {
+            background: linear-gradient(135deg, var(--success-color), #229954);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-buttons {
+                justify-content: center;
+            }
+
+            .contributions-table {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h4><i class="fas fa-piggy-bank me-2"></i>M-Koba</h4>
+            <a href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+            <a href="/admin/groups-management"><i class="fas fa-users me-2"></i>Groups Management</a>
+            <a href="/admin/members"><i class="fas fa-user me-2"></i>Members</a>
+            <a href="/admin/loans"><i class="fas fa-hand-holding-usd me-2"></i>Loans</a>
+            <a href="/admin/contributions" class="active"><i class="fas fa-coins me-2"></i>Contributions</a>
+            <a href="/admin/reports"><i class="fas fa-chart-bar me-2"></i>Reports</a>
+            <a href="/admin/settings"><i class="fas fa-cog me-2"></i>Settings</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1><i class="fas fa-coins me-3"></i>Contributions Management</h1>
+                <p>Track and manage member contributions across all groups</p>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Filters and Actions -->
+            <div class="contributions-header">
+                <div class="header-row">
+                    <div class="filter-group">
+                        <label>Cycle:</label>
+                        <select class="form-select">
+                            <option th:text="${currentMonth}" selected>Feb 2026</option>
+                            <option>Jan 2026</option>
+                            <option>Dec 2025</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Group:</label>
+                        <select class="form-select">
+                            <option value="all" th:selected="${selectedGroup == 'all'}">All Groups</option>
+                            <option th:each="group : ${groups}" 
+                                    th:value="${group.id}" 
+                                    th:text="${group.name}"
+                                    th:selected="${selectedGroup == group.id.toString()}">Group Name</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select class="form-select">
+                            <option value="all" th:selected="${selectedStatus == 'all'}">All</option>
+                            <option value="paid" th:selected="${selectedStatus == 'paid'}">Paid</option>
+                            <option value="pending" th:selected="${selectedStatus == 'pending'}">Pending</option>
+                            <option value="late" th:selected="${selectedStatus == 'late'}">Late</option>
+                        </select>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-custom btn-primary-custom">
+                            <i class="fas fa-dollar-sign"></i> Set Amount
+                        </button>
+                        <button class="btn-custom btn-success-custom">
+                            <i class="fas fa-bell"></i> Send Reminder
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contributions Table -->
+            <div class="contributions-table">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Group</th>
+                            <th>Required</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${users.empty}">
+                            <td colspan="8" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <h5>No contributions found</h5>
+                                <p>No member contributions match the selected criteria.</p>
+                            </td>
+                        </tr>
+                        
+                        <tr th:each="user : ${users}" th:if="${user.group != null}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-2" style="width: 35px; height: 35px; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                        <span th:text="${user.firstName.charAt(0)}">N</span>
+                                    </div>
+                                    <span th:text="${user.firstName + ' ' + user.lastName}">Neema</span>
+                                </div>
+                            </td>
+                            <td th:text="${user.group.name}">Umoja</td>
+                            <td>
+                                <span th:text="${#numbers.formatDecimal(user.group.monthlyContribution, 0, 0)}">20,000</span>
+                            </td>
+                            <td>
+                                <span th:text="${#numbers.formatDecimal(user.paidAmount, 0, 0)}">20,000</span>
+                            </td>
+                            <td>
+                                <span th:text="${#numbers.formatDecimal(user.balance, 0, 0)}">0</span>
+                            </td>
+                            <td th:text="${#temporals.format(user.dueDate, 'dd/MM/yyyy')}">05/02/2026</td>
+                            <td>
+                                <span th:class="'status-badge status-' + ${user.contributionStatus}" th:text="${user.contributionStatus}">Paid</span>
+                            </td>
+                            <td>
+                                <button class="action-btn action-btn-view">View</button>
+                                <button th:if="${user.contributionStatus == 'Pending'}" class="action-btn action-btn-record">Record</button>
+                                <button th:if="${user.contributionStatus == 'Late'}" class="action-btn action-btn-penalize">Penalize</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Total Section -->
+                <div class="total-section">
+                    TOTAL COLLECTION: <span th:text="${#numbers.formatDecimal(totalCollection, 0, 0)}">1,250,000</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter change handlers
+            const selects = document.querySelectorAll('.form-select');
+            selects.forEach(select => {
+                select.addEventListener('change', function() {
+                    // Reload page with new filters
+                    const url = new URL(window.location);
+                    if (this.closest('.filter-group').querySelector('label').textContent.includes('Cycle')) {
+                        url.searchParams.set('cycle', this.value);
+                    } else if (this.closest('.filter-group').querySelector('label').textContent.includes('Group')) {
+                        url.searchParams.set('group', this.value);
+                    } else if (this.closest('.filter-group').querySelector('label').textContent.includes('Status')) {
+                        url.searchParams.set('status', this.value);
+                    }
+                    window.location.href = url.toString();
+                });
+            });
+
+            // Action button handlers
+            document.querySelector('.btn-primary-custom').addEventListener('click', function() {
+                alert('Set Amount functionality coming soon!');
+            });
+
+            document.querySelector('.btn-success-custom').addEventListener('click', function() {
+                alert('Send Reminder functionality coming soon!');
+            });
+        });
+    </script>
+</body>
+</html>

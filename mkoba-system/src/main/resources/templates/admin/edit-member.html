@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hariri Mwanachama - M-Koba Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 2px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-piggy-bank"></i> M-Koba Admin
+                    </h4>
+                    
+                    <nav class="nav flex-column">
+                        <a href="/admin/dashboard" class="nav-link">
+                            <i class="fas fa-home me-2"></i> Overview
+                        </a>
+                        <a href="/admin/members" class="nav-link active">
+                            <i class="fas fa-users me-2"></i> Members
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-users-cog me-2"></i> Groups
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-hand-holding-usd me-2"></i> Loans
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-piggy-bank me-2"></i> Savings
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-chart-bar me-2"></i> Reports
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-cog me-2"></i> Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">Hariri Taarifa za Mwanachama</h2>
+                            <p class="mb-0">Badilisha taarifa za mwanachama</p>
+                        </div>
+                        <a href="/admin/members" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-2"></i> Rudi kwenye Orodha
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Edit Member Form -->
+                <div class="form-container">
+                    <form th:action="@{/admin/members/edit/{id}(id=${member.id})}" method="post">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">Jina la Kwanza</label>
+                                <input type="text" class="form-control" id="firstName" name="firstName" th:value="${member.firstName}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Jina la Mwisho</label>
+                                <input type="text" class="form-control" id="lastName" name="lastName" th:value="${member.lastName}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Barua Pepe</label>
+                                <input type="email" class="form-control" id="email" name="email" th:value="${member.email}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phoneNumber" class="form-label">Namba ya Simu</label>
+                                <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" th:value="${member.phoneNumber}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="role" class="form-label">Jukumu</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="">Chagua Jukumu</option>
+                                    <option value="MEMBER" th:selected="${member.role == 'MEMBER'}">Mwanachama</option>
+                                    <option value="TREASURER" th:selected="${member.role == 'TREASURER'}">Mhazini</option>
+                                    <option value="SECRETARY" th:selected="${member.role == 'SECRETARY'}">Katibu</option>
+                                    <option value="CHAIRPERSON" th:selected="${member.role == 'CHAIRPERSON'}">Mwenyekiti</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="groupId" class="form-label">Kikundi</label>
+                                <select class="form-select" id="groupId" name="groupId" required>
+                                    <option value="">Chagua Kikundi</option>
+                                    <option th:each="group : ${groups}" th:value="${group.id}" th:text="${group.name}" th:selected="${member.group != null and group.id == member.group.id}">Kikundi</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Hali ya Akaunti</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="ACTIVE" th:selected="${member.status == 'ACTIVE'}">Amefunguliwa</option>
+                                <option value="INACTIVE" th:selected="${member.status == 'INACTIVE'}">Imefungwa</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/admin/members" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i> Ghairi
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Hifadhi Mabadiliko
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

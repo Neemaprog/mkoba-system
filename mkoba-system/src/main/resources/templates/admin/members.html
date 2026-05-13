@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanachama - M-Koba Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 2px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .btn-action {
+            padding: 4px 8px;
+            margin: 0 1px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.75rem;
+            min-width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-edit {
+            background: #ffc107;
+            color: white;
+        }
+        .btn-edit:hover {
+            background: #e0a800;
+        }
+        .btn-toggle {
+            background: #28a745;
+            color: white;
+        }
+        .btn-toggle:hover {
+            background: #218838;
+        }
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        .btn-group {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+            flex-direction: row;
+        }
+        .btn-group .btn-action {
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-piggy-bank"></i> M-Koba Admin
+                    </h4>
+                    
+                    <nav class="nav flex-column">
+                        <a href="/admin/dashboard" class="nav-link">
+                            <i class="fas fa-home me-2"></i> Overview
+                        </a>
+                        <a href="/admin/members" class="nav-link active">
+                            <i class="fas fa-users me-2"></i> Members
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-users-cog me-2"></i> Groups
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-hand-holding-usd me-2"></i> Loans
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-piggy-bank me-2"></i> Savings
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-chart-bar me-2"></i> Reports
+                        </a>
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-cog me-2"></i> Settings
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1">Wanachama</h2>
+                            <p class="mb-0">Dhibiti wanachama wote wa M-Koba</p>
+                        </div>
+                        <a href="/admin/members/add" class="btn btn-light">
+                            <i class="fas fa-plus me-2"></i> Ongeza Mwanachama
+                        </a>
+                    </div>
+                    
+                    <!-- Success/Error Messages -->
+                    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span th:if="${param.success == 'member_added'}">Mwanachama umefanikiwa kwa mafanikio!</span>
+                        <span th:if="${param.success == 'member_updated'}">Taarifa za mwanachama zimesasiriwa!</span>
+                        <span th:if="${param.success == 'member_deleted'}">Mwanachama amefutwa!</span>
+                        <span th:if="${param.success == 'status_toggled'}">Hali ya akaunti imebadilishwa!</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    
+                    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span th:if="${param.error == 'email_exists'}">Barua pepe tayari imeshikiliwa!</span>
+                        <span th:if="${param.error == 'member_not_found'}">Mwanachama hayapatikani!</span>
+                        <span th:if="${param.error == 'invalid_group'}">Kikundi hakijapatikani!</span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+
+                <!-- Members Table -->
+                <div class="table-container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Orodha ya Wanachama</h5>
+                        <div class="d-flex gap-2">
+                            <input type="text" class="form-control form-control-sm" placeholder="Tafuta mwanachama..." style="width: 200px;">
+                            <select class="form-select form-select-sm" style="width: 150px;">
+                                <option value="">Jukumu Lolote</option>
+                                <option value="CHAIRPERSON">Mwenyekiti</option>
+                                <option value="SECRETARY">Katibu</option>
+                                <option value="TREASURER">Mhazini</option>
+                                <option value="MEMBER">Mwanachama</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Jina Kamili</th>
+                                    <th>Barua Pepe</th>
+                                    <th>Namba ya Simu</th>
+                                    <th>Jukumu</th>
+                                    <th>Kikundi</th>
+                                    <th>Hali</th>
+                                    <th>Tarehe ya Kujiunga</th>
+                                    <th>Vitendo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="member : ${members}">
+                                    <td th:text="${member.id}">1</td>
+                                    <td th:text="${member.firstName + ' ' + member.lastName}">Mariam Juma</td>
+                                    <td th:text="${member.email}">mariam.juma@example.com</td>
+                                    <td th:text="${member.phoneNumber}">+255 712 345 678</td>
+                                    <td>
+                                        <span class="role-badge" th:text="${member.role}">CHAIRPERSON</span>
+                                    </td>
+                                    <td th:text="${member.group != null ? member.group.name : 'Hakuna kikundi'}">M-Koba Group 1</td>
+                                    <td>
+                                        <span class="status-badge status-active" th:if="${member.status == 'ACTIVE'}" th:text="${member.status}">ACTIVE</span>
+                                        <span class="status-badge status-inactive" th:if="${member.status == 'INACTIVE'}" th:text="${member.status}">INACTIVE</span>
+                                    </td>
+                                    <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}">2024-01-15</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a th:href="@{/admin/members/edit/{id}(id=${member.id})}" class="btn-action btn-edit" title="Hariri">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form th:action="@{/admin/members/toggle-status/{id}(id=${member.id})}" method="post" style="display: inline;" onsubmit="return confirm('Una uhakika wa kubadilisha hali ya akaunti?')">
+                                                <button type="submit" class="btn-action btn-toggle" th:title="${member.status == 'ACTIVE' ? 'Fungua Akaunti' : 'Fungia Akaunti'}">
+                                                    <i class="fas" th:class="${member.status == 'ACTIVE' ? 'fa-lock' : 'fa-unlock'}"></i>
+                                                </button>
+                                            </form>
+                                            <form th:action="@{/admin/members/delete/{id}(id=${member.id})}" method="post" style="display: inline;" onsubmit="return confirm('Una uhakika wa kumfuta mwanachama huu?')">
+                                                <button type="submit" class="btn-action btn-delete" title="Futa">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(members)}">
+                                    <td colspan="9" class="text-center text-muted">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Hakuna wanachama waliorekodiwa bado.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Wanachama pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Iliyotangulia</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Ifuatayo</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

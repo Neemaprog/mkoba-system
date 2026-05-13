@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omba Mkopo - M-Koba</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .loan-form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .info-card {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-piggy-bank"></i> M-Koba
+                    </h4>
+                    
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-3x"></i>
+                        <h6 class="mt-2" th:text="${user.fullName}">Jina La Mwanachama</h6>
+                        <small th:text="${user.role.displayName}">Mwanachama</small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="/dashboard/profile">
+                            <i class="fas fa-user"></i> Wasifu Wangu
+                        </a>
+                        <a class="nav-link" href="/dashboard/savings">
+                            <i class="fas fa-coins"></i> Akiba na Michango
+                        </a>
+                        <a class="nav-link active" href="/dashboard/loans">
+                            <i class="fas fa-hand-holding-usd"></i> Mikopo
+                        </a>
+                        <a class="nav-link" href="/dashboard/transactions">
+                            <i class="fas fa-exchange-alt"></i> Miamala
+                        </a>
+                        <a class="nav-link" href="/dashboard/group-info">
+                            <i class="fas fa-users"></i> Taarifa ya Kikundi
+                        </a>
+                        <a class="nav-link" href="/dashboard/reports">
+                            <i class="fas fa-file-download"></i> Ripoti
+                        </a>
+                        <a class="nav-link text-danger" href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> Toka
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-hand-holding-usd"></i> Omba Mkopo</h2>
+                    <a href="/dashboard/loans" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Rudi kwa Mikopo
+                    </a>
+                </div>
+                
+                <!-- Loan Information -->
+                <div class="info-card">
+                    <h5><i class="fas fa-info-circle"></i> Maelezo ya Mkopo</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Kiasi Cha Juu Cha Mkopo:</strong> Tsh 500,000</p>
+                            <p><strong>Riba:</strong> 10% kwa mwezi</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Muda wa Malipo:</strong> Mpaka miezi 12</p>
+                            <p><strong>Akiba Inayohitajika:</strong> Angalau Tsh 100,000</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loan Application Form -->
+                <div class="loan-form-card">
+                    <h5 class="mb-4"><i class="fas fa-file-alt"></i> Fomu ya Ombi la Mkopo</h5>
+                    
+                    <form th:action="@{/dashboard/loans/apply}" method="post">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">Kiasi Cha Mkopo (Tsh)</label>
+                                    <input type="number" class="form-control" id="amount" name="amount" 
+                                           placeholder="100000" min="10000" max="500000" required>
+                                    <small class="form-text text-muted">Kiasi cha chini: Tsh 10,000, Kiasi cha juu: Tsh 500,000</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="interestRate" class="form-label">Riba (%)</label>
+                                        <input type="number" class="form-control" id="interestRate" name="interestRate" 
+                                               placeholder="10" min="5" max="20" step="0.1" value="10" required>
+                                        <small class="form-text text-muted">Riba itatokewa kulingana na kikundi lako</small>
+                                    </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="purpose" class="form-label">Madhumuni ya Mkopo</label>
+                                    <select class="form-select" id="purpose" name="purpose" required>
+                                        <option value="">Chagua Madhumuni</option>
+                                        <option value="Biashara">Biashara</option>
+                                        <option value="Elimu">Elimu</option>
+                                        <option value="Matibabu">Matibabu</option>
+                                        <option value="Nyumba">Nyumba</option>
+                                        <option value="Kilimo">Kilimo</option>
+                                        <option value="Mengineyo">Mengineyo</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Maelezo ya Madhumuni</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Tafadhali toa maelezo ya kina kuhusu madhumuni ya mkopo..." required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="repaymentPeriod" class="form-label">Muda wa Marejesho (Miezi)</label>
+                                    <select class="form-select" id="repaymentPeriod" name="repaymentPeriod" required>
+                                        <option value="">Chagua Muda</option>
+                                        <option value="3">Miezi 3</option>
+                                        <option value="6">Miezi 6</option>
+                                        <option value="9">Miezi 9</option>
+                                        <option value="12">Miezi 12</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="guarantor" class="form-label">Mdhamini (Jina Kamili)</label>
+                                    <input type="text" class="form-control" id="guarantor" name="guarantor" 
+                                           placeholder="Andika jina la mdhamini wako" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="guarantorPhone" class="form-label">Namba ya Simu ya Mdhamini</label>
+                                    <input type="tel" class="form-control" id="guarantorPhone" name="guarantorPhone" 
+                                           placeholder="+255 123 456 789" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="guarantorRelation" class="form-label">Uhusiano na Mdhamini</label>
+                                    <select class="form-select" id="guarantorRelation" name="guarantorRelation" required>
+                                        <option value="">Chagua Uhusiano</option>
+                                        <option value="Mume/Mke">Mume/Mke</option>
+                                        <option value="Baba/Mama">Baba/Mama</option>
+                                        <option value="Kaka/Dada">Kaka/Dada</option>
+                                        <option value="Rafiki">Rafiki</option>
+                                        <option value="Mfanyabiashara">Mfanyabiashara</option>
+                                        <option value="Mengineyo">Mengineyo</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Loan Calculation Preview -->
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-calculator"></i> Tahadhari za Mkopo</h6>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <p><strong>Kiasi Cha Mkopo:</strong> <span id="loanAmountPreview">Tsh 0</span></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Riba (10%):</strong> <span id="interestPreview">Tsh 0</span></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Jumla ya Kurejesha:</strong> <span id="totalPreview">Tsh 0</span></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p><strong>Marejesho ya Kila Mwezi:</strong> <span id="monthlyPreview">Tsh 0</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    Nime soma nakubali <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">masharti na vigezo</a> 
+                                    vya mkopo na ninaahidi kurejesha mkopo kwa wakati.
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <a href="/dashboard/loans" class="btn btn-secondary me-2">
+                                <i class="fas fa-times"></i> Ghairi
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Tuma Ombi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Terms Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Masharti na Vigezo vya Mkopo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>1. Vigezo vya Ustahiki</h6>
+                    <ul>
+                        <li>Mwanachama lazima awe amekuwa akichango kwa angalau miezi 3</li>
+                        <li>Akiba ya chini ni Tsh 100,000</li>
+                        <li>Hakuna mkopo usiolipwa</li>
+                        <li>Mwanachama lazima awe na mdhamini mwenye uwezo</li>
+                    </ul>
+                    
+                    <h6>2. Riba na Ada</h6>
+                    <ul>
+                        <li>Riba ni 10% kwa mwezi</li>
+                        <li>Ada ya usindikaji ni 2% ya kiasi cha mkopo</li>
+                        <li>Riba inaanza kukusanywa baada ya mkopo kutolewa</li>
+                    </ul>
+                    
+                    <h6>3. Muda wa Marejesho</h6>
+                    <ul>
+                        <li>Muda wa marejesho ni mpaka miezi 12</li>
+                        <li>Marejesho yanafanywa kila mwezi</li>
+                        <li>Kuchelewa kurejesha kutaongeza faini ya 5% ya kiasi kilichobaki</li>
+                    </ul>
+                    
+                    <h6>4. Dhamana</h6>
+                    <ul>
+                        <li>Mkopo unahitaji mdhamini mwenye uwezo</li>
+                        <li>Akiba ya mwanachama inaweza kutumika kama dhamana</li>
+                        <li>Kikundi kina haki ya kumshikilia mwanachama ambaye hajarejesha mkopo</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Funga</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Calculate loan details
+        document.getElementById('amount').addEventListener('input', calculateLoan);
+        document.getElementById('repaymentPeriod').addEventListener('change', calculateLoan);
+        document.getElementById('interestRate').addEventListener('input', calculateLoan);
+        
+        function calculateLoan() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const period = parseInt(document.getElementById('repaymentPeriod').value) || 12;
+            const rate = parseFloat(document.getElementById('interestRate').value) || 10;
+            
+            const interest = amount * (rate / 100);
+            const total = amount + interest;
+            const monthly = total / period;
+            
+            document.getElementById('loanAmountPreview').textContent = 'Tsh ' + amount.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+            document.getElementById('interestPreview').textContent = 'Tsh ' + interest.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+            document.getElementById('totalPreview').textContent = 'Tsh ' + total.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+            document.getElementById('monthlyPreview').textContent = 'Tsh ' + monthly.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+        }
+    </script>
+</body>
+</html>

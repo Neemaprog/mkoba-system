@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikopo - M-Koba</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            border-left: 4px solid #667eea;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card .icon {
+            font-size: 2.5rem;
+            color: #667eea;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        .amount-positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px 12px 0 0;
+        }
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-piggy-bank"></i> M-Koba
+                    </h4>
+                    
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <i class="fas fa-user-circle fa-3x"></i>
+                            <span class="notification-badge">3</span>
+                        </div>
+                        <h6 class="mt-2" th:text="${user.fullName}">Jina La Mwanachama</h6>
+                        <small th:text="${user.role.displayName}">Mwanachama</small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="/dashboard/profile">
+                            <i class="fas fa-user"></i> Wasifu Wangu
+                        </a>
+                        <a class="nav-link" href="/dashboard/savings">
+                            <i class="fas fa-coins"></i> Akiba na Michango
+                        </a>
+                        <a class="nav-link active" href="/dashboard/loans">
+                            <i class="fas fa-hand-holding-usd"></i> Mikopo
+                        </a>
+                        <a class="nav-link" href="/dashboard/transactions">
+                            <i class="fas fa-exchange-alt"></i> Miamala
+                        </a>
+                        <a class="nav-link" href="/dashboard/group-info">
+                            <i class="fas fa-users"></i> Taarifa ya Kikundi
+                        </a>
+                        <a class="nav-link" href="/dashboard/reports">
+                            <i class="fas fa-file-download"></i> Ripoti
+                        </a>
+                        <a class="nav-link text-danger" href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> Toka
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-hand-holding-usd text-primary"></i> Mikopo Yangu</h2>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#applyLoanModal">
+                            <i class="fas fa-plus"></i> Omba Mkopo
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Loan Status Filters -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-primary active" onclick="filterLoans('ALL')">
+                                <i class="fas fa-list"></i> Zote (<span th:text="${loanStats.totalLoans}">0</span>)
+                            </button>
+                            <button type="button" class="btn btn-outline-warning" onclick="filterLoans('PENDING')">
+                                <i class="fas fa-clock"></i> Inasubiri (<span th:text="${loanStats.pendingLoans}">0</span>)
+                            </button>
+                            <button type="button" class="btn btn-outline-info" onclick="filterLoans('APPROVED')">
+                                <i class="fas fa-check"></i> Imekubaliwa (<span th:text="${loanStats.approvedLoans}">0</span>)
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" onclick="filterLoans('ACTIVE')">
+                                <i class="fas fa-play"></i> Inaendelea (<span th:text="${loanStats.activeLoans}">0</span>)
+                            </button>
+                            <button type="button" class="btn btn-outline-success" onclick="filterLoans('COMPLETED')">
+                                <i class="fas fa-check-circle"></i> Imemalizika (<span th:text="${loanStats.completedLoans}">0</span>)
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" onclick="filterLoans('REJECTED')">
+                                <i class="fas fa-times"></i> Imekataliwa (<span th:text="${loanStats.rejectedLoans}">0</span>)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loan Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="text-muted mb-2">Salio la Akiba</h5>
+                                    <h3 class="mb-0 amount-positive" th:text="${#numbers.formatDecimal(availableBalance, 0, 'COMMA', 2, 'POINT')}">0</h3>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="text-muted mb-2">Mikopo Inayoendelea</h5>
+                                    <h3 class="mb-0" th:text="${loanStats.activeLoans}">0</h3>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-hand-holding-usd"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="text-muted mb-2">Deni Jumla</h5>
+                                    <h3 class="mb-0 amount-negative" th:text="${#numbers.formatDecimal(totalOutstanding, 0, 'COMMA', 2, 'POINT')}">0</h3>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="text-muted mb-2">Mikopo Imekamilika</h5>
+                                    <h3 class="mb-0" th:text="${loanStats.completedLoans}">0</h3>
+                                </div>
+                                <div class="icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Financial Summary Alert -->
+                <div class="alert alert-info mb-4">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-wallet"></i> Salio la Akiba</h6>
+                            <p class="mb-0"><strong>Tsh <span th:text="${#numbers.formatDecimal(availableBalance, 0, 'COMMA', 2, 'POINT')}">0</span></strong></p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-calculator"></i> Deni la Mkopo</h6>
+                            <p class="mb-0"><strong>Tsh <span th:text="${#numbers.formatDecimal(totalOutstanding, 0, 'COMMA', 2, 'POINT')}">0</span></strong></p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-balance-scale"></i> Salio Halisi</h6>
+                            <p class="mb-0"><strong>Tsh <span th:text="${#numbers.formatDecimal(availableBalance - totalOutstanding, 0, 'COMMA', 2, 'POINT')}">0</span></strong></p>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                
+                <!-- Loans Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-list"></i> Historia ya Mikopo</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Tarehe ya Ombi</th>
+                                        <th>Kiasi</th>
+                                        <th>Maelezo</th>
+                                        <th>Hali</th>
+                                        <th>Vitendo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="loan : ${loans}">
+                                        <td th:text="${#temporals.format(loan.applicationDate, 'dd/MM/yyyy')}">01/01/2024</td>
+                                        <td class="amount-positive" th:text="${#numbers.formatDecimal(loan.amount, 0, 'COMMA', 2, 'POINT')}">50,000.00</td>
+                                        <td th:text="${loan.purpose != null ? loan.purpose : '-'}">Maelezo</td>
+                                        <td>
+                                            <span th:if="${loan.status.name() == 'PENDING'}" class="badge bg-warning">Inasubiri</span>
+                                            <span th:if="${loan.status.name() == 'APPROVED'}" class="badge bg-info">Imekubaliwa</span>
+                                            <span th:if="${loan.status.name() == 'REJECTED'}" class="badge bg-danger">Imekataliwa</span>
+                                            <span th:if="${loan.status.name() == 'ACTIVE'}" class="badge bg-primary">Inaendelea</span>
+                                            <span th:if="${loan.status.name() == 'COMPLETED'}" class="badge bg-success">Imemalizika</span>
+                                            <span th:if="${loan.status.name() == 'DEFAULTED'}" class="badge bg-secondary">Imeshindwa Kulipwa</span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" th:onclick="'viewLoanDetails(' + ${loan.id} + ')'">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button th:if="${loan.status.name() == 'APPROVED'}" class="btn btn-sm btn-outline-success" th:onclick="'downloadLoanAgreement(' + ${loan.id} + ')'">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(loans)}">
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                                            <h5>Hakuna mikopo bado</h5>
+                                            <p>Anza kuomba mkopo wa kwanza kuona historia hapa.</p>
+                                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#applyLoanModal">
+                                                <i class="fas fa-plus"></i> Omba Mkopo wa Kwanza
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Apply Loan Modal -->
+    <div class="modal fade" id="applyLoanModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-hand-holding-usd"></i> Omba Mkopo Mpya
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loanApplicationForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Kiasi cha Mkopo</label>
+                                    <input type="number" class="form-control" id="loanAmount" required min="1000" step="1000">
+                                    <div class="form-text">Kiasi cha chini: Tsh 1,000</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Muda wa Malipo (Miezi)</label>
+                                    <select class="form-select" id="loanPeriod" required>
+                                        <option value="">Chagua Muda</option>
+                                        <option value="3">Miezi 3</option>
+                                        <option value="6">Miezi 6</option>
+                                        <option value="9">Miezi 9</option>
+                                        <option value="12">Miezi 12</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Maelezo ya Mkopo</label>
+                            <textarea class="form-control" id="loanDescription" rows="3" required placeholder="Eleza kwanini unahitaji mkopo..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tarehe ya Ombi</label>
+                            <input type="date" class="form-control" id="applicationDate" required>
+                        </div>
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Maelekezo ya Mkopo:</h6>
+                            <ul class="mb-0">
+                                <li>Kiasi cha juu cha mkopo: Tsh <span th:text="${group.maxLoanAmount}">100,000</span></li>
+                                <li>Riba: <span th:text="${group.interestRate}">5</span>% kwa mwaka</li>
+                                <li>Mikopo itakaguliwa kulingana na uwezo wako wa kulipa</li>
+                                <li>Hakikisha una uwezo wa kurudisha mkopo kabla ya kuomba</li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Ghairi
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="submitLoanApplication()">
+                        <i class="fas fa-paper-plane"></i> Tuma Ombi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loan Details Modal -->
+    <div class="modal fade" id="loanDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle"></i> Maelezo ya Mkopo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="loanDetailsContent">
+                    <!-- Loan details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Funga
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set today's date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('applicationDate').value = today;
+        });
+        
+        // Filter loans by status
+        function filterLoans(status) {
+            // Update button states
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Filter loan rows
+            const loanRows = document.querySelectorAll('tbody tr');
+            loanRows.forEach(row => {
+                if (row.querySelector('td[colspan]')) {
+                    // Skip "no data" row
+                    return;
+                }
+                
+                const statusBadge = row.querySelector('.badge');
+                if (statusBadge) {
+                    const rowStatus = statusBadge.textContent.trim();
+                    
+                    let shouldShow = false;
+                    switch(status) {
+                        case 'ALL':
+                            shouldShow = true;
+                            break;
+                        case 'PENDING':
+                            shouldShow = rowStatus === 'Inasubiri';
+                            break;
+                        case 'APPROVED':
+                            shouldShow = rowStatus === 'Imekubaliwa';
+                            break;
+                        case 'ACTIVE':
+                            shouldShow = rowStatus === 'Inaendelea';
+                            break;
+                        case 'COMPLETED':
+                            shouldShow = rowStatus === 'Imemalizika';
+                            break;
+                        case 'REJECTED':
+                            shouldShow = rowStatus === 'Imekataliwa';
+                            break;
+                    }
+                    
+                    row.style.display = shouldShow ? '' : 'none';
+                }
+            });
+            
+            // Update statistics visibility based on filter
+            updateStatisticsVisibility(status);
+        }
+        
+        // Update statistics cards based on filter
+        function updateStatisticsVisibility(status) {
+            const allStats = document.querySelectorAll('.stat-card');
+            
+            if (status === 'ALL') {
+                // Show all statistics
+                allStats.forEach(card => card.style.display = '');
+            } else {
+                // Show only relevant statistics
+                allStats.forEach(card => {
+                    const title = card.querySelector('h5').textContent;
+                    if (status === 'ACTIVE' && title.includes('Inayoendelea')) {
+                        card.style.display = '';
+                    } else if (status === 'COMPLETED' && title.includes('Imekamilika')) {
+                        card.style.display = '';
+                    } else if (status === 'PENDING' && title.includes('Inasubiri')) {
+                        card.style.display = '';
+                    } else if (status === 'REJECTED' && title.includes('Imekataliwa')) {
+                        card.style.display = '';
+                    } else if (status === 'APPROVED' && title.includes('Imekubaliwa')) {
+                        card.style.display = '';
+                    } else if (status === 'ALL' && title.includes('Deni Jumla')) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        // Submit loan application
+        function submitLoanApplication() {
+            const amount = document.getElementById('loanAmount').value;
+            const period = document.getElementById('loanPeriod').value;
+            const description = document.getElementById('loanDescription').value;
+            const date = document.getElementById('applicationDate').value;
+            
+            // Validation
+            if (!amount || !period || !description || !date) {
+                alert('Tafadhali jaza sehemu zote zinazohitajika.');
+                return;
+            }
+            
+            // Validate amount
+            if (parseFloat(amount) <= 0) {
+                alert('Kiasi cha mkopo kiwe zaidi ya sifuri.');
+                return;
+            }
+            
+            // Validate period
+            if (parseInt(period) < 1 || parseInt(period) > 12) {
+                alert('Muda wa mkopo uwe kati ya 1 na 12 miezi.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = event.target;
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inatuma...';
+            submitBtn.disabled = true;
+            
+            // Submit loan application
+            fetch('/dashboard/loans/apply/json', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content')
+                },
+                body: JSON.stringify({
+                    amount: parseFloat(amount),
+                    period: parseInt(period),
+                    description: description,
+                    applicationDate: date
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Ombi la mkopo limetumwa kikamilifu!');
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('applyLoanModal'));
+                    modal.hide();
+                    // Reload page after a short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert('Imeshindikana kutuma ombi: ' + (data.message || 'Tatizo la kiufundi'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Kuna tatizo la kiufundi. Tafadhali jaribu tena.\nMaelezo: ' + error.message);
+            })
+            .finally(() => {
+                // Restore button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+        
+        // View loan details
+        function viewLoanDetails(loanId) {
+            // Show loading state
+            const viewBtn = event.target.closest('button');
+            const originalText = viewBtn.innerHTML;
+            viewBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            viewBtn.disabled = true;
+            
+            // Fetch loan details
+            fetch('/dashboard/loans/' + loanId + '/details')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Display loan details
+                    const detailsHtml = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Maelezo ya Msingi</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>ID ya Mkopo:</strong></td>
+                                        <td>#${data.loan.id}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Kiasi:</strong></td>
+                                        <td>Tsh ${Number(data.loan.amount).toLocaleString('sw-TZ')}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Muda:</strong></td>
+                                        <td>${data.loan.period || '0'} miezi</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Riba:</strong></td>
+                                        <td>${data.loan.interestRate || '0'}%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Jumla ya Malipo:</strong></td>
+                                        <td>Tsh ${Number(data.loan.totalAmount || 0).toLocaleString('sw-TZ')}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Hali ya Mkopo</h6>
+                                <table class="table table-sm">
+                                    <tr>
+                                        <td><strong>Tarehe ya Ombi:</strong></td>
+                                        <td>${data.loan.applicationDate || '-'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Hali:</strong></td>
+                                        <td><span class="badge bg-primary">${data.loan.status}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Maelezo:</strong></td>
+                                        <td>${data.loan.purpose || '-'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Kiasi Kilicholipwa:</strong></td>
+                                        <td>Tsh ${Number(data.loan.amountPaid || 0).toLocaleString('sw-TZ')}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Baki ya Malipo:</strong></td>
+                                        <td>Tsh ${Number(data.loan.remainingBalance || 0).toLocaleString('sw-TZ')}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('loanDetailsContent').innerHTML = detailsHtml;
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('loanDetailsModal'));
+                    modal.show();
+                } else {
+                    alert('Imeshindikana kupata maelezo: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Kuna tatizo la kiufundi. Tafadhali jaribu tena.');
+            })
+            .finally(() => {
+                // Restore button state
+                viewBtn.innerHTML = originalText;
+                viewBtn.disabled = false;
+            });
+        }
+        
+        // Download loan agreement
+        function downloadLoanAgreement(loanId) {
+            window.open('/dashboard/loans/' + loanId + '/agreement', '_blank');
+        }
+    </script>
+</body>
+</html>

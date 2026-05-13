@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Management | M-Koba System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-bg: #ecf0f1;
+            --border-color: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+        }
+
+        .sidebar h4 {
+            margin-bottom: 30px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background: var(--secondary-color);
+            transform: translateX(5px);
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+            background: white;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .page-header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .savings-header {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .filter-group select {
+            min-width: 150px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 500;
+        }
+
+        .search-input {
+            min-width: 200px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-custom {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary-custom {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-warning-custom {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning-custom:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        .savings-table {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .table thead th {
+            border: none;
+            padding: 15px 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .table tbody td {
+            padding: 15px 12px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-verified {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-approved {
+            background: #d1ecf1;
+            color: #0f5132;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn-view {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .action-btn-view:hover {
+            background: #bbdefb;
+        }
+
+        .action-btn-approve {
+            background: #28a745;
+            color: white;
+        }
+
+        .action-btn-approve:hover {
+            background: #1e7e34;
+        }
+
+        .action-btn-adjust {
+            background: #ffc107;
+            color: white;
+        }
+
+        .action-btn-adjust:hover {
+            background: #e0a800;
+        }
+
+        .total-section {
+            background: linear-gradient(135deg, var(--success-color), #229954);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .action-buttons {
+                justify-content: center;
+            }
+
+            .savings-table {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h4><i class="fas fa-piggy-bank me-2"></i>M-Koba</h4>
+            <a href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+            <a href="/admin/groups-management"><i class="fas fa-users me-2"></i>Groups Management</a>
+            <a href="/admin/members"><i class="fas fa-user me-2"></i>Members</a>
+            <a href="/admin/loans"><i class="fas fa-hand-holding-usd me-2"></i>Loans</a>
+            <a href="/admin/contributions"><i class="fas fa-coins me-2"></i>Contributions</a>
+            <a href="/admin/transactions"><i class="fas fa-exchange-alt me-2"></i>Transactions</a>
+            <a href="/admin/savings" class="active"><i class="fas fa-piggy-bank me-2"></i>Savings</a>
+            <a href="/admin/reports"><i class="fas fa-chart-bar me-2"></i>Reports</a>
+            <a href="/admin/settings"><i class="fas fa-cog me-2"></i>Settings</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1><i class="fas fa-piggy-bank me-3"></i>SAVINGS MANAGEMENT</h1>
+                <p>Track and manage member savings and deposits across all groups</p>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Filters and Actions -->
+            <div class="savings-header">
+                <div class="header-row">
+                    <div class="filter-group">
+                        <label>Date:</label>
+                        <select class="form-select">
+                            <option value="current" th:selected="${selectedDate == 'current'}">This Month</option>
+                            <option th:text="${currentMonth}" selected>Feb 2026</option>
+                            <option>Jan 2026</option>
+                            <option>Dec 2025</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Group:</label>
+                        <select class="form-select">
+                            <option value="all" th:selected="${selectedGroup == 'all'}">All Groups</option>
+                            <option th:each="group : ${groups}" 
+                                    th:value="${group.id}" 
+                                    th:text="${group.name}"
+                                    th:selected="${selectedGroup == group.id.toString()}">Group Name</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Search:</label>
+                        <input type="text" class="search-input" placeholder="Search members...">
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-custom btn-primary-custom">
+                            <i class="fas fa-check-circle"></i> Approve Deposit
+                        </button>
+                        <button class="btn-custom btn-warning-custom">
+                            <i class="fas fa-edit"></i> Adjust
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Savings Table -->
+            <div class="savings-table">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Previous</th>
+                            <th>Deposit</th>
+                            <th>Withdraw</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${savings.empty}">
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <h5>No savings records found</h5>
+                                <p>No savings match the selected criteria.</p>
+                            </td>
+                        </tr>
+                        
+                        <tr th:each="saving : ${savings}">
+                            <td th:data-savings-id="${saving.id}" th:text="${saving.user.firstName + ' ' + saving.user.lastName}">Neema</td>
+                            <td>
+                                <span th:text="${#numbers.formatDecimal(saving.amount, 0, 0)}">200,000</span>
+                            </td>
+                            <td>
+                                <span th:text="${#numbers.formatDecimal(saving.amount, 0, 0)}">20,000</span>
+                            </td>
+                            <td>
+                                <span th:text="${#numbers.formatDecimal(saving.amount, 0, 0)}">220,000</span>
+                            </td>
+                            <td>
+                                <span th:class="'status-badge status-' + ${saving.type}" th:text="${saving.type.displayName}">Monthly Contribution</span>
+                            </td>
+                            <td>
+                                <button class="action-btn action-btn-view">Statement</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Total Section -->
+                <div class="total-section">
+                    TOTAL GROUP SAVINGS: <span th:text="${#numbers.formatDecimal(totalSavings, 0, 0)}">5,450,000</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add interactive functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter change handlers
+            const selects = document.querySelectorAll('.form-select');
+            selects.forEach(select => {
+                select.addEventListener('change', function() {
+                    // Reload page with new filters
+                    const url = new URL(window.location);
+                    if (this.closest('.filter-group').querySelector('label').textContent.includes('Date')) {
+                        url.searchParams.set('date', this.value);
+                    } else if (this.closest('.filter-group').querySelector('label').textContent.includes('Group')) {
+                        url.searchParams.set('group', this.value);
+                    }
+                    window.location.href = url.toString();
+                });
+            });
+
+            // Action button handlers
+            document.querySelector('.btn-primary-custom').addEventListener('click', function() {
+                alert('Approve Deposit functionality coming soon!');
+            });
+
+            document.querySelector('.btn-warning-custom').addEventListener('click', function() {
+                alert('Adjust functionality coming soon!');
+            });
+            
+            // Statement button handlers
+            document.querySelectorAll('.action-btn-view').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const savingsId = row.querySelector('td:first-child').dataset.savingsId;
+                    viewSavingsStatement(savingsId);
+                });
+            });
+        });
+        
+        // View savings statement
+        function viewSavingsStatement(savingsId) {
+            fetch('/admin/savings/statement?savingsId=' + savingsId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const statement = data.statement;
+                        alert('Savings Statement:\n\n' +
+                              'ID: ' + statement.id + '\n' +
+                              'User: ' + statement.user + '\n' +
+                              'Group: ' + statement.group + '\n' +
+                              'Amount: TZS ' + statement.amount + '\n' +
+                              'Date: ' + statement.contributionDate + '\n' +
+                              'Type: ' + statement.type + '\n' +
+                              'Description: ' + statement.description);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error loading statement');
+                });
+        }
+    </script>
+</body>
+</html>

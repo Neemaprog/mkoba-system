@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maelezo ya Mkopo - M-Koba</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .loan-details-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        .info-row {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .action-buttons {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">M-Koba Admin</h4>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="/admin/members">
+                            <i class="fas fa-users me-2"></i> Wanachama
+                        </a>
+                        <a class="nav-link active" href="/admin/loans">
+                            <i class="fas fa-hand-holding-usd me-2"></i> Mikopo
+                        </a>
+                        <a class="nav-link" href="/admin/savings">
+                            <i class="fas fa-piggy-bank me-2"></i> Akiba
+                        </a>
+                        <a class="nav-link" href="/admin/transactions">
+                            <i class="fas fa-exchange-alt me-2"></i> Muamala
+                        </a>
+                        <a class="nav-link" href="/admin/notifications">
+                            <i class="fas fa-bell me-2"></i> Arifa
+                        </a>
+                        <a class="nav-link" href="/admin/settings">
+                            <i class="fas fa-cog me-2"></i> Mipangilio
+                        </a>
+                        <a class="nav-link text-danger" href="/logout">
+                            <i class="fas fa-sign-out-alt me-2"></i> Toka
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-eye me-2"></i> Maelezo ya Mkopo</h2>
+                    <a href="/admin/loans" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i> Rudi kwenye Mikopo
+                    </a>
+                </div>
+
+                <div class="loan-details-card" th:if="${loan}">
+                    <!-- Loan Header -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h4 th:text="${loan.user.firstName + ' ' + loan.user.lastName}">Jina La Mteja</h4>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-envelope me-2"></i>
+                                <span th:text="${loan.user.email}">email@example.com</span>
+                            </p>
+                            <p class="text-muted mb-1">
+                                <i class="fas fa-phone me-2"></i>
+                                <span th:text="${loan.user.phoneNumber}">+255 700 000 000</span>
+                            </p>
+                            <p class="text-muted">
+                                <i class="fas fa-users me-2"></i>
+                                <span th:text="${loan.group.name}">Jina La Kikundi</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="status-badge" 
+                                  th:classappend="${loan.status.name() == 'PENDING' ? 'bg-warning' : 
+                                                   loan.status.name() == 'APPROVED' ? 'bg-success' : 
+                                                   loan.status.name() == 'REJECTED' ? 'bg-danger' : 
+                                                   loan.status.name() == 'ACTIVE' ? 'bg-info' : 'bg-secondary'}"
+                                  th:text="${loan.status.name()}">PENDING</span>
+                        </div>
+                    </div>
+
+                    <!-- Loan Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i> Maelezo ya Mkopo</h5>
+                            
+                            <div class="info-row">
+                                <strong>Kiasi Cha Mkopo:</strong>
+                                <span class="float-end" th:text="${#numbers.formatDecimal(loan.amount, 0, 0)} + ' TZS'">0 TZS</span>
+                            </div>
+                            
+                            <div class="info-row">
+                                <strong>Riba:</strong>
+                                <span class="float-end" th:text="${loan.interestRate} + '%'">10%</span>
+                            </div>
+                            
+                            <div class="info-row">
+                                <strong>Jumla ya Kurejesha:</strong>
+                                <span class="float-end" th:text="${loan.totalAmount != null ? #numbers.formatDecimal(loan.totalAmount, 0, 0) + ' TZS' : 'TBD'}">0 TZS</span>
+                            </div>
+                            
+                            <div class="info-row">
+                                <strong>Kiasi Kilicholipwa:</strong>
+                                <span class="float-end" th:text="${#numbers.formatDecimal(loan.amountPaid, 0, 0)} + ' TZS'">0 TZS</span>
+                            </div>
+                            
+                            <div class="info-row">
+                                <strong>Baki Ya Malipo:</strong>
+                                <span class="float-end" th:text="${loan.remainingBalance != null ? #numbers.formatDecimal(loan.remainingBalance, 0, 0) + ' TZS' : #numbers.formatDecimal(loan.amount, 0, 0) + ' TZS'}">0 TZS</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5 class="mb-3"><i class="fas fa-calendar me-2"></i> Maelezo ya Tarehe</h5>
+                            
+                            <div class="info-row">
+                                <strong>Tarehe ya Ombi:</strong>
+                                <span class="float-end" th:text="${#temporals.format(loan.applicationDate, 'dd MMM yyyy, HH:mm')}">01 Jan 2024, 10:00</span>
+                            </div>
+                            
+                            <div class="info-row" th:if="${loan.approvalDate}">
+                                <strong>Tarehe ya Idhini:</strong>
+                                <span class="float-end" th:text="${#temporals.format(loan.approvalDate, 'dd MMM yyyy, HH:mm')}">01 Jan 2024, 10:30</span>
+                            </div>
+                            
+                            <div class="info-row" th:if="${loan.dueDate}">
+                                <strong>Tarehe ya Malipo:</strong>
+                                <span class="float-end" th:text="${#temporals.format(loan.dueDate, 'dd MMM yyyy')}">01 Jan 2025</span>
+                            </div>
+                            
+                            <div class="info-row" th:if="${loan.completionDate}">
+                                <strong>Tarehe ya Kumaliza:</strong>
+                                <span class="float-end" th:text="${#temporals.format(loan.completionDate, 'dd MMM yyyy, HH:mm')}">01 Jan 2025, 10:00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loan Purpose -->
+                    <div class="mt-4">
+                        <h5 class="mb-3"><i class="fas fa-bullseye me-2"></i> Madhumuni ya Mkopo</h5>
+                        <p th:text="${loan.purpose != null ? loan.purpose : 'Haijafafanuliwa'}">Madhumuni ya mkopo</p>
+                    </div>
+
+                    <!-- Guarantor Information -->
+                    <div class="mt-4" th:if="${loan.guarantor}">
+                        <h5 class="mb-3"><i class="fas fa-user-shield me-2"></i> Maelezo ya Mdhamini</h5>
+                        <p th:text="${loan.guarantor}">Maelezo ya mdhamini</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons" th:if="${loan.status.name() == 'PENDING'}">
+                        <form th:action="@{/admin/loans/approve/{id}(id=${loan.id})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i> Idhini Mkopo
+                            </button>
+                        </form>
+                        
+                        <form th:action="@{/admin/loans/reject/{id}(id=${loan.id})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-2"></i> Kataa Mkopo
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="action-buttons" th:if="${loan.status.name() == 'APPROVED' or loan.status.name() == 'ACTIVE'}">
+                        <form th:action="@{/admin/loans/activate/{id}(id=${loan.id})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-play me-2"></i> Anzisha Mkopo
+                            </button>
+                        </form>
+                        
+                        <form th:action="@{/admin/loans/complete/{id}(id=${loan.id})}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-circle me-2"></i> Maliza Mkopo
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div class="alert alert-danger" th:if="${error}">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}">Kuna hitilafu</span>
+                </div>
+
+                <!-- Success Message -->
+                <div class="alert alert-success" th:if="${message}">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${message}">Mafanikio</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ripoti - M-Koba</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px 12px 0 0;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .stat-icon.savings {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        .stat-icon.loans {
+            background: linear-gradient(135deg, #007bff, #6f42c1);
+            color: white;
+        }
+        .stat-icon.transactions {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+        }
+        .stat-icon.balance {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            color: white;
+        }
+        .amount-positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .amount-negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-piggy-bank"></i> M-Koba
+                    </h4>
+                    
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <i class="fas fa-user-circle fa-3x"></i>
+                        </div>
+                        <h6 class="mt-2" th:text="${user.fullName}">Jina La Mwanachama</h6>
+                        <small th:text="${user.role.displayName}">Mwanachama</small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="/dashboard/profile">
+                            <i class="fas fa-user"></i> Wasifu Wangu
+                        </a>
+                        <a class="nav-link" href="/dashboard/savings">
+                            <i class="fas fa-coins"></i> Akiba na Michango
+                        </a>
+                        <a class="nav-link" href="/dashboard/loans">
+                            <i class="fas fa-hand-holding-usd"></i> Mikopo
+                        </a>
+                        <a class="nav-link" href="/dashboard/group-info">
+                            <i class="fas fa-users"></i> Taarifa ya Kikundi
+                        </a>
+                        <a class="nav-link" href="/dashboard/transactions">
+                            <i class="fas fa-exchange-alt"></i> Miamala
+                        </a>
+                        <a class="nav-link active" href="/dashboard/reports">
+                            <i class="fas fa-file-download"></i> Ripoti
+                        </a>
+                        <a class="nav-link text-danger" href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> Toka
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon savings">
+                                <i class="fas fa-piggy-bank"></i>
+                            </div>
+                            <h6>Akiba Zako</h6>
+                            <h4 class="amount-positive" th:text="${#numbers.formatDecimal(totalSavings, 0, 'COMMA', 2, 'POINT')}">Tsh 0.00</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon loans">
+                                <i class="fas fa-hand-holding-usd"></i>
+                            </div>
+                            <h6>Mikopo Inayoendelea</h6>
+                            <h4 class="amount-negative" th:text="${#numbers.formatDecimal(totalOutstanding, 0, 'COMMA', 2, 'POINT')}">Tsh 0.00</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon transactions">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <h6>Jumla ya Miamala</h6>
+                            <h4 th:text="${totalTransactions}">0</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon balance">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <h6>Salio Lako</h6>
+                            <h4 class="amount-positive" th:text="${#numbers.formatDecimal(netBalance, 0, 'COMMA', 2, 'POINT')}">Tsh 0.00</h4>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts Section -->
+                <div class="row">
+                    <!-- Savings Trend Chart -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Mwelekeo wa Akiba</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="savingsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Loan Status Chart -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Hali ya Mikopo</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="loanStatusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <!-- Transaction Types Chart -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Aina za Miamala</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="transactionTypesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Monthly Performance Chart -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-chart-area"></i> Utendaji wa Kila Mwezi</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="monthlyPerformanceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+               
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        // Real data from backend
+        const savingsLabels = /*[[${savingsLabels}]]*/ [];
+        const savingsDataValues = /*[[${savingsData}]]*/ [];
+        
+        const savingsData = {
+            labels: savingsLabels,
+            datasets: [{
+                label: 'Akiba ya Mwezi',
+                data: savingsDataValues,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4
+            }]
+        };
+        
+        const loanStatusData = {
+            labels: ['Inayoendelea', 'Imekamilishwa', 'Inasubiri', 'Imekataliwa'],
+            datasets: [{
+                data: [
+                    /*[[${loanStatusCount.get('Inayoendelea')}]]*/ 0,
+                    /*[[${loanStatusCount.get('Imekamilishwa')}]]*/ 0,
+                    /*[[${loanStatusCount.get('Inasubiri')}]]*/ 0,
+                    /*[[${loanStatusCount.get('Imekataliwa')}]]*/ 0
+                ],
+                backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+            }]
+        };
+        
+        const transactionTypesData = {
+            labels: ['Mchango wa Akiba', 'Toleo la Mkopo', 'Malipo ya Mkopo', 'Faini', 'Ada'],
+            datasets: [{
+                label: 'Idadi ya Miamala',
+                data: [
+                    /*[[${transactionTypeCount.get('Mchango wa Akiba')}]]*/ 0,
+                    /*[[${transactionTypeCount.get('Toleo la Mkopo')}]]*/ 0,
+                    /*[[${transactionTypeCount.get('Malipo ya Mkopo')}]]*/ 0,
+                    /*[[${transactionTypeCount.get('Faini')}]]*/ 0,
+                    /*[[${transactionTypeCount.get('Ada')}]]*/ 0
+                ],
+                backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545', '#6f42c1']
+            }]
+        };
+        
+        const monthlyIncome = /*[[${monthlyIncome}]]*/ [];
+        const monthlyExpenses = /*[[${monthlyExpenses}]]*/ [];
+        
+        const monthlyPerformanceData = {
+            labels: savingsLabels,
+            datasets: [{
+                label: 'Mapato',
+                data: monthlyIncome,
+                backgroundColor: 'rgba(40, 167, 69, 0.5)',
+                borderColor: '#28a745'
+            }, {
+                label: 'Matumizi',
+                data: monthlyExpenses,
+                backgroundColor: 'rgba(220, 53, 69, 0.5)',
+                borderColor: '#dc3545'
+            }]
+        };
+        
+        // Initialize charts
+        const savingsChart = new Chart(document.getElementById('savingsChart'), {
+            type: 'line',
+            data: savingsData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+        
+        const loanStatusChart = new Chart(document.getElementById('loanStatusChart'), {
+            type: 'pie',
+            data: loanStatusData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        
+        const transactionTypesChart = new Chart(document.getElementById('transactionTypesChart'), {
+            type: 'bar',
+            data: transactionTypesData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        const monthlyPerformanceChart = new Chart(document.getElementById('monthlyPerformanceChart'), {
+            type: 'line',
+            data: monthlyPerformanceData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+        
+        // Export report function
+        function exportReport(type) {
+            // In real app, this would call backend API to generate and download report
+            alert('Inapakua ripoti ya ' + type + '. Kazi hii itatekelezwa baadaye.');
+        }
+    </script>
+</body>
+</html>

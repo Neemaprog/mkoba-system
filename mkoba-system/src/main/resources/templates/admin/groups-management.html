@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groups Management - M-Koba System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav-link.active {
+            background: rgba(52, 152, 219, 0.3);
+            color: white;
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content {
+            background: white;
+            min-height: 100vh;
+            padding: 30px;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .groups-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .table thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-closed {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-view {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .btn-view:hover {
+            background: #1976d2;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-edit {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .btn-edit:hover {
+            background: #f57c00;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-delete {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        
+        .btn-delete:hover {
+            background: #d32f2f;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-reopen {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .btn-reopen:hover {
+            background: #2e7d32;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-create {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .search-input {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+        
+        .filter-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .filter-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <div class="text-center mb-4">
+                    <h4 class="text-white">
+                        <i class="fas fa-piggy-bank me-2"></i>
+                        M-Koba
+                    </h4>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Dashboard
+                    </a>
+                    <a class="nav-link active" th:href="@{/admin/groups-management}">
+                        <i class="fas fa-users-cog me-2"></i>
+                        Groups Management
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/loans}">
+                        <i class="fas fa-hand-holding-usd me-2"></i>
+                        Loans
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/members}">
+                        <i class="fas fa-user-friends me-2"></i>
+                        Members
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/savings}">
+                        <i class="fas fa-piggy-bank me-2"></i>
+                        Savings
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/transactions}">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Transactions
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/settings}">
+                        <i class="fas fa-cog me-2"></i>
+                        Settings
+                    </a>
+                    <a class="nav-link text-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        Logout
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Page Header -->
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0">
+                            <i class="fas fa-users-cog me-3"></i>
+                            GROUPS MANAGEMENT
+                        </h2>
+                        <p class="mb-0 opacity-75">Manage and monitor all savings groups</p>
+                    </div>
+                    <div>
+                        <a th:href="@{/admin/groups-management/add}" class="btn btn-create">
+                            <i class="fas fa-plus me-2"></i>
+                            Create Group
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Success/Error Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Search and Filter Section -->
+                <div class="search-section">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control search-input" id="searchInput" 
+                                       placeholder="Search Group..." th:value="${search}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select filter-select" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="active" th:selected="${status == 'active'}">Active</option>
+                                <option value="closed" th:selected="${status == 'closed'}">Closed</option>
+                                <option value="inactive" th:selected="${status == 'inactive'}">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" onclick="filterGroups()">
+                                <i class="fas fa-filter me-2"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Groups Table -->
+                <div class="groups-table">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Group Name</th>
+                                    <th>Members</th>
+                                    <th>Contribution</th>
+                                    <th>Cycle</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(groups)}">
+                                    <td colspan="6" class="empty-state">
+                                        <i class="fas fa-users-slash"></i>
+                                        <h5>No Groups Found</h5>
+                                        <p class="text-muted">Start by creating your first group</p>
+                                        <a th:href="@{/admin/groups/add}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-2"></i>
+                                            Create First Group
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr th:each="group : ${groups}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-3">
+                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px; font-weight: bold;">
+                                                    <span th:text="${#strings.substring(group.name, 0, 1)}">U</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold" th:text="${group.name}">Umoja</div>
+                                                <small class="text-muted" th:text="${group.description}">Savings group for community development</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info" th:text="${memberCounts[group.id] ?: 0}">15</span>
+                                        <div class="text-muted small">members</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold" th:text="${#numbers.formatDecimal(group.monthlyContribution, 1, 0)}">20,000</span>
+                                        <div class="text-muted small">/week</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold" th:text="${group.meetingFrequency}">6 months</div>
+                                        <div class="text-muted small">cycle</div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-active" th:if="${group.active}">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Active
+                                        </span>
+                                        <span class="status-badge status-closed" th:unless="${group.active}">
+                                            <i class="fas fa-times-circle me-1"></i>
+                                            Closed
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a th:href="@{/admin/groups-management/view/{id}(id=${group.id})}" class="btn btn-action btn-view" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a th:href="@{/admin/groups/edit/{id}(id=${group.id})}" class="btn btn-action btn-edit" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button th:if="${group.active}" 
+                                                    class="btn btn-action btn-delete" 
+                                                    th:data-group-id="${group.id}"
+                                                    th:data-group-name="${group.name}"
+                                                    onclick="confirmDelete(this)"
+                                                    title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            <button th:unless="${group.active}" 
+                                                    class="btn btn-action btn-reopen" 
+                                                    th:data-group-id="${group.id}"
+                                                    onclick="reopenGroup(this)"
+                                                    title="Reopen">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirm Delete
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the group <strong id="deleteGroupName"></strong>?</p>
+                    <p class="text-muted">This action cannot be undone and will remove all associated data.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>
+                            Delete Group
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function filterGroups() {
+            const search = document.getElementById('searchInput').value;
+            const status = document.getElementById('statusFilter').value;
+            window.location.href = '/admin/groups-management?search=' + encodeURIComponent(search) + '&status=' + status;
+        }
+
+        function confirmDelete(button) {
+            const groupId = button.getAttribute('data-group-id');
+            const groupName = button.getAttribute('data-group-name');
+            document.getElementById('deleteGroupName').textContent = groupName;
+            document.getElementById('deleteForm').action = '/admin/groups/delete/' + groupId;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        function reopenGroup(button) {
+            const groupId = button.getAttribute('data-group-id');
+            if (confirm('Are you sure you want to reopen this group?')) {
+                window.location.href = '/admin/groups/reopen/' + groupId;
+            }
+        }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                filterGroups();
+            }
+        });
+
+        // Auto-filter on status change
+        document.getElementById('statusFilter').addEventListener('change', function() {
+            filterGroups();
+        });
+    </script>
+</body>
+</html>

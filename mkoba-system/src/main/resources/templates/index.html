@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Karibu M-Koba</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f2f5;
+        color: #333;
+      }
+      .container {
+        text-align: center;
+        background-color: white;
+        padding: 50px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      }
+      h1 {
+        font-size: 2.5em;
+        color: #1a2b4d;
+        margin-bottom: 10px;
+      }
+      p {
+        font-size: 1.2em;
+        color: #555;
+        margin-bottom: 30px;
+      }
+      .login-btn {
+        display: inline-block;
+        padding: 12px 30px;
+        background-color: #0056b3;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 1.1em;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+      }
+      .login-btn:hover {
+        background-color: #004494;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Karibu kwenye Mfumo wa M-Koba</h1>
+      <p>Suluhisho la kisasa la usimamizi wa vikundi vya akiba na mikopo.</p>
+      <a th:href="@{/login}" class="login-btn">Ingia (Login)</a>
+      <a th:href="@{/register}" class="login-btn" style="margin-left: 20px"
+        >Jisajili (Register)</a
+      >
+    </div>
+  </body>
+</html>

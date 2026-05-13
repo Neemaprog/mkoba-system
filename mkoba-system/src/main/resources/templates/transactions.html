@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miamala - M-Koba</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            border-left: 4px solid #667eea;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card .icon {
+            font-size: 2.5rem;
+            color: #667eea;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        .amount-positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .amount-negative {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px 12px 0 0;
+        }
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+        }
+        .badge-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-piggy-bank"></i> M-Koba
+                    </h4>
+                    
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <i class="fas fa-user-circle fa-3x"></i>
+                            <span class="notification-badge">3</span>
+                        </div>
+                        <h6 class="mt-2" th:text="${user.fullName}">Jina La Mwanachama</h6>
+                        <small th:text="${user.role.displayName}">Mwanachama</small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="/dashboard/profile">
+                            <i class="fas fa-user"></i> Wasifu Wangu
+                        </a>
+                        <a class="nav-link" href="/dashboard/savings">
+                            <i class="fas fa-coins"></i> Akiba na Michango
+                        </a>
+                        <a class="nav-link" href="/dashboard/loans">
+                            <i class="fas fa-hand-holding-usd"></i> Mikopo
+                        </a>
+                        <a class="nav-link active" href="/dashboard/transactions">
+                            <i class="fas fa-exchange-alt"></i> Miamala
+                        </a>
+                        <a class="nav-link" href="/dashboard/group-info">
+                            <i class="fas fa-users"></i> Taarifa ya Kikundi
+                        </a>
+                        <a class="nav-link" href="/dashboard/reports">
+                            <i class="fas fa-file-download"></i> Ripoti
+                        </a>
+                        <a class="nav-link text-danger" href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> Toka
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2><i class="fas fa-exchange-alt text-primary"></i> Miamala Yangu</h2>
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newTransactionModal">
+                                <i class="fas fa-plus"></i> Miamala Mpya
+                            </button>
+                        </div>
+                        
+                        <!-- Transaction Statistics -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="text-muted mb-2">Miamala Yote</h5>
+                                            <h3 class="mb-0" th:text="${transactions != null ? #lists.size(transactions) : 0}">0</h3>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-list"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="text-muted mb-2">Mapato</h5>
+                                            <h3 class="mb-0 amount-positive">+Tsh <span th:text="${#numbers.formatDecimal(totalIncome, 0, 'COMMA', 2, 'POINT')}">0</span></h3>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="text-muted mb-2">Matumizi</h5>
+                                            <h3 class="mb-0 amount-negative">-Tsh <span th:text="${#numbers.formatDecimal(totalExpenses, 0, 'COMMA', 2, 'POINT')}">0</span></h3>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="text-muted mb-2">Salio</h5>
+                                            <h3 class="mb-0" th:class="${balance >= 0} ? 'amount-positive' : 'amount-negative'">
+                                                <span th:text="${balance >= 0} ? '+' : '-'">+</span>Tsh <span th:text="${#numbers.formatDecimal(balance >= 0 ? balance : -balance, 0, 'COMMA', 2, 'POINT')}">0</span>
+                                            </h3>
+                                        </div>
+                                        <div class="icon">
+                                            <i class="fas fa-wallet"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Transactions Table -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-list"></i> Historia ya Miamala</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Tarehe</th>
+                                                <th>Namba ya Rejeleo</th>
+                                                <th>Aina</th>
+                                                <th>Maelezo</th>
+                                                <th>Kiasi</th>
+                                                <th>Hali</th>
+                                                <th>Vitendo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:if="${transactions == null or #lists.isEmpty(transactions)}">
+                                                <td colspan="7" class="text-center text-muted py-4">
+                                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                                    <h5>Hakuna miamala bado</h5>
+                                                    <p>Anza kufanya miamala kuona historia hapa.</p>
+                                                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newTransactionModal">
+                                                        <i class="fas fa-plus"></i> Anza Miamala
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr th:each="transaction : ${transactions}" th:if="${transactions != null}">
+                                                <td th:text="${#temporals.format(transaction.transactionDate, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:30</td>
+                                                <td th:text="${transaction.referenceNumber != null ? transaction.referenceNumber : '-'}">REF001</td>
+                                                <td>
+                                                    <span th:if="${transaction.type.name() == 'SAVINGS_CONTRIBUTION'}" class="badge bg-success">Mchango wa Akiba</span>
+                                                    <span th:if="${transaction.type.name() == 'LOAN_DISBURSEMENT'}" class="badge bg-info">Toleo la Mkopo</span>
+                                                    <span th:if="${transaction.type.name() == 'LOAN_REPAYMENT'}" class="badge bg-primary">Malipo ya Mkopo</span>
+                                                    <span th:if="${transaction.type.name() == 'PENALTY_PAYMENT'}" class="badge bg-danger">Malipo ya Faini</span>
+                                                    <span th:if="${transaction.type.name() == 'REFUND'}" class="badge bg-warning">Rudisho</span>
+                                                    <span th:if="${transaction.type.name() == 'FEE'}" class="badge bg-secondary">Ada</span>
+                                                    <span th:if="${transaction.type.name() == 'INTEREST_PAYMENT'}" class="badge bg-dark">Malipo ya Riba</span>
+                                                </td>
+                                                <td th:text="${transaction.description != null ? transaction.description : '-'}">Maelezo ya miamala</td>
+                                                <td th:class="${transaction.type.name() == 'SAVINGS_CONTRIBUTION' or transaction.type.name() == 'LOAN_DISBURSEMENT' or transaction.type.name() == 'REFUND'} ? 'amount-positive' : 'amount-negative'">
+                                                    <span th:if="${transaction.type.name() == 'SAVINGS_CONTRIBUTION' or transaction.type.name() == 'LOAN_DISBURSEMENT' or transaction.type.name() == 'REFUND'}">+</span>
+                                                    <span th:if="${transaction.type.name() == 'LOAN_REPAYMENT' or transaction.type.name() == 'PENALTY_PAYMENT' or transaction.type.name() == 'FEE' or transaction.type.name() == 'INTEREST_PAYMENT'}">-</span>
+                                                    Tsh <span th:text="${#numbers.formatDecimal(transaction.amount, 0, 'COMMA', 2, 'POINT')}">1,000.00</span>
+                                                </td>
+                                                <td>
+                                                    <span th:if="${transaction.status.name() == 'PENDING'}" class="badge bg-warning badge-status">Inasubiri</span>
+                                                    <span th:if="${transaction.status.name() == 'COMPLETED'}" class="badge bg-success badge-status">Imekamilika</span>
+                                                    <span th:if="${transaction.status.name() == 'FAILED'}" class="badge bg-danger badge-status">Imeshindwa</span>
+                                                    <span th:if="${transaction.status.name() == 'CANCELLED'}" class="badge bg-secondary badge-status">Imefutwa</span>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary" th:onclick="'viewTransaction(' + ${transaction.id} + ')'">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                   
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Transaction Modal -->
+    <div class="modal fade" id="newTransactionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exchange-alt"></i> Miamala Mpya
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newTransactionForm">
+                        <div class="mb-3">
+                            <label for="transactionType" class="form-label">Aina ya Miamala</label>
+                            <select class="form-select" id="transactionType" required>
+                                <option value="">Chagua aina ya miamala</option>
+                                <option value="SAVINGS_CONTRIBUTION">Mchango wa Akiba</option>
+                                <option value="LOAN_DISBURSEMENT">Toleo la Mkopo</option>
+                                <option value="LOAN_REPAYMENT">Malipo ya Mkopo</option>
+                                <option value="PENALTY_PAYMENT">Malipo ya Faini</option>
+                                <option value="REFUND">Rudisho</option>
+                                <option value="FEE">Ada</option>
+                                <option value="INTEREST_PAYMENT">Malipo ya Riba</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="transactionAmount" class="form-label">Kiasi</label>
+                            <input type="number" class="form-control" id="transactionAmount" step="0.01" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="transactionDescription" class="form-label">Maelezo</label>
+                            <textarea class="form-control" id="transactionDescription" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="transactionDate" class="form-label">Tarehe ya Miamala</label>
+                            <input type="date" class="form-control" id="transactionDate" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Funga
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="submitTransaction()">
+                        <i class="fas fa-save"></i> Tuma Miamala
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- View Transaction Modal -->
+    <div class="modal fade" id="viewTransactionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-eye"></i> Maelezo ya Miamala
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted">Namba ya Rejeleo:</label>
+                            <p class="fw-bold" id="viewReferenceNumber">-</p>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted">Tarehe ya Miamala:</label>
+                            <p class="fw-bold" id="viewTransactionDate">-</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-muted">Aina ya Miamala:</label>
+                            <p class="fw-bold" id="viewTransactionType">-</p>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted">Hali ya Miamala:</label>
+                            <p class="fw-bold" id="viewTransactionStatus">-</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label text-muted">Kiasi:</label>
+                            <p class="fw-bold h4 text-primary" id="viewAmount">-</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label text-muted">Maelezo:</label>
+                            <p class="fw-bold" id="viewDescription">-</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Funga
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set today's date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
+        });
+        
+        // View transaction details
+        function viewTransaction(transactionId) {
+            fetch('/dashboard/transactions/' + transactionId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const transaction = data.transaction;
+                        
+                        // Fill modal with transaction data
+                        document.getElementById('viewReferenceNumber').textContent = transaction.referenceNumber || '-';
+                        document.getElementById('viewTransactionDate').textContent = new Date(transaction.transactionDate).toLocaleString('sw-TZ');
+                        
+                        // Set transaction type in Swahili
+                        let typeText = '';
+                        switch(transaction.type) {
+                            case 'SAVINGS_CONTRIBUTION': typeText = 'Mchango wa Akiba'; break;
+                            case 'LOAN_DISBURSEMENT': typeText = 'Toleo la Mkopo'; break;
+                            case 'LOAN_REPAYMENT': typeText = 'Malipo ya Mkopo'; break;
+                            case 'PENALTY_PAYMENT': typeText = 'Malipo ya Faini'; break;
+                            case 'REFUND': typeText = 'Rudisho'; break;
+                            case 'FEE': typeText = 'Ada'; break;
+                            case 'INTEREST_PAYMENT': typeText = 'Malipo ya Riba'; break;
+                            default: typeText = transaction.type;
+                        }
+                        document.getElementById('viewTransactionType').textContent = typeText;
+                        
+                        // Set status in Swahili
+                        let statusText = '';
+                        let statusClass = '';
+                        switch(transaction.status) {
+                            case 'COMPLETED': statusText = 'Imekamilika'; statusClass = 'text-success'; break;
+                            case 'PENDING': statusText = 'Inasubiri'; statusClass = 'text-warning'; break;
+                            case 'FAILED': statusText = 'Imeshindwa'; statusClass = 'text-danger'; break;
+                            case 'CANCELLED': statusText = 'Imefutwa'; statusClass = 'text-secondary'; break;
+                            default: statusText = transaction.status; statusClass = '';
+                        }
+                        const statusElement = document.getElementById('viewTransactionStatus');
+                        statusElement.textContent = statusText;
+                        statusElement.className = 'fw-bold ' + statusClass;
+                        
+                        // Set amount
+                        document.getElementById('viewAmount').textContent = 'Tsh ' + parseFloat(transaction.amount).toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+                        
+                        // Set description
+                        document.getElementById('viewDescription').textContent = transaction.description || '-';
+                        
+                        // Show modal
+                        const modal = new bootstrap.Modal(document.getElementById('viewTransactionModal'));
+                        modal.show();
+                    } else {
+                        alert('Imeshindikana kupata maelezo ya miamala: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Kuna tatizo limetokea wakati wa kupata maelezo ya miamala.');
+                });
+        }
+        
+        // Submit transaction
+        function submitTransaction() {
+            const type = document.getElementById('transactionType').value;
+            const amount = document.getElementById('transactionAmount').value;
+            const description = document.getElementById('transactionDescription').value;
+            const date = document.getElementById('transactionDate').value;
+            
+            // Validation
+            if (!type || !amount || !description || !date) {
+                alert('Tafadhali jaza sehemu zote zinazohitajika.');
+                return;
+            }
+            
+            if (parseFloat(amount) <= 0) {
+                alert('Kiasi cha miamala kiwe zaidi ya sifuri.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.querySelector('[onclick="submitTransaction()"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inatumia...';
+            submitBtn.disabled = true;
+            
+            // Prepare transaction data
+            const transactionData = {
+                type: type,
+                amount: parseFloat(amount),
+                description: description,
+                date: date
+            };
+            
+            // Send to backend
+            fetch('/dashboard/transactions/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(transactionData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Miamala yako imefanikiwa kikamilifu!');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('newTransactionModal'));
+                    modal.hide();
+                    
+                    // Reset form
+                    document.getElementById('newTransactionForm').reset();
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('transactionDate').value = today;
+                    
+                    // Reload page to show new transaction
+                    window.location.reload();
+                } else {
+                    alert('Imeshindikana kutuma miamala: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Imeshindikana kutuma miamala. Tafadhali jaribu tena.');
+            })
+            .finally(() => {
+                // Restore button state
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>

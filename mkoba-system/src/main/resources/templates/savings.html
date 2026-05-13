@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akiba na Michango - M-Koba</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .savings-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .total-savings {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+        }
+        .amount-positive {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-0">
+                <div class="p-3">
+                    <h4 class="text-center mb-4">
+                        <i class="fas fa-piggy-bank"></i> M-Koba
+                    </h4>
+                    
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-3x"></i>
+                        <h6 class="mt-2" th:text="${user.fullName}">Jina La Mwanachama</h6>
+                        <small th:text="${user.role.displayName}">Mwanachama</small>
+                    </div>
+                    
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="/dashboard/profile">
+                            <i class="fas fa-user"></i> Wasifu Wangu
+                        </a>
+                        <a class="nav-link active" href="/dashboard/savings">
+                            <i class="fas fa-coins"></i> Akiba na Michango
+                        </a>
+                        <a class="nav-link" href="/dashboard/loans">
+                            <i class="fas fa-hand-holding-usd"></i> Mikopo
+                        </a>
+                        <a class="nav-link" href="/dashboard/transactions">
+                            <i class="fas fa-exchange-alt"></i> Miamala
+                        </a>
+                        <a class="nav-link" href="/dashboard/group-info">
+                            <i class="fas fa-users"></i> Taarifa ya Kikundi
+                        </a>
+                        <a class="nav-link" href="/dashboard/reports">
+                            <i class="fas fa-file-download"></i> Ripoti
+                        </a>
+                        <a class="nav-link text-danger" href="/logout">
+                            <i class="fas fa-sign-out-alt"></i> Toka
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-coins"></i> Akiba na Michango</h2>
+                    <a href="/dashboard" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Rudi kwa Dashboard
+                    </a>
+                </div>
+                
+                <!-- Total Savings Summary -->
+                <div class="total-savings mb-4">
+                    <h3>Jumla ya Akiba</h3>
+                    <h1>Tsh <span th:text="${#numbers.formatDecimal(totalSavings, 0, 'COMMA', 2, 'POINT')}">0.00</span></h1>
+                    <p class="mb-0">Salio lako la jumla la akiba</p>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="savings-card">
+                    <h5 class="mb-3"><i class="fas fa-plus-circle"></i> Vitendo vya Haraka</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <button class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#monthlyContributionModal">
+                                <i class="fas fa-plus"></i> Fanya Mchango wa Mwezi
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#additionalSavingsModal">
+                                <i class="fas fa-piggy-bank"></i> Ongeza Akiba ya Ziada
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-info w-100 mb-2" onclick="downloadSavingsReport()">
+                                <i class="fas fa-download"></i> Pakua Ripoti ya Akiba
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Savings History -->
+                <div class="savings-card">
+                    <h5 class="mb-3"><i class="fas fa-history"></i> Historia ya Michango</h5>
+                    
+                    <!-- Filter Options -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <select class="form-select" id="typeFilter" onchange="filterSavings()">
+                                <option value="">Aina Zote</option>
+                                <option value="Mchango wa Kila Mwezi">Mchango wa Kila Mwezi</option>
+                                <option value="Akiba ya Ziada">Akiba ya Ziada</option>
+                                <option value="Faini">Faini</option>
+                                <option value="Ruzuku">Ruzuku</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="month" class="form-control" id="monthFilter" onchange="filterSavings()">
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-primary w-100" onclick="filterSavings()">
+                                <i class="fas fa-filter"></i> Chuja
+                            </button>
+                        </div>
+                    </div>
+                    
+                                        
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tarehe</th>
+                                    <th>Aina ya Mchango</th>
+                                    <th>Maelezo</th>
+                                    <th>Kiasi</th>
+                                    <th>Hali</th>
+                                    <th>Vitendo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="saving : ${savings}">
+                                    <td th:text="${#temporals.format(saving.contributionDate, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:30</td>
+                                    <td>
+                                        <span class="badge bg-primary" th:text="${saving.type.displayName}">Aina</span>
+                                    </td>
+                                    <td th:text="${saving.description != null ? saving.description : '-'}">Maelezo</td>
+                                    <td class="amount-positive" th:text="${#numbers.formatDecimal(saving.amount, 0, 'COMMA', 2, 'POINT')}">50,000.00</td>
+                                    <td>
+                                        <span class="badge bg-success">Imethibitishwa</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" th:onclick="'viewSavings(' + ${saving.id} + ')'">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" th:onclick="'downloadSavingsReceipt(' + ${saving.id} + ')'">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(savings)}">
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                                        <h5>Hakuna michango bado</h5>
+                                        <p>Anza kufanya michango yako ya kwanza kuona historia hapa.</p>
+                                        <button class="btn btn-success">
+                                            <i class="fas fa-plus"></i> Fanya Mchango wa Kwanza
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <nav th:if="${not #lists.isEmpty(savings)}">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">Iliyotangulia</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">3</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Ifuatayo</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                
+                <!-- Savings Statistics -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="savings-card text-center">
+                            <i class="fas fa-calendar-check fa-2x text-primary mb-2"></i>
+                            <h4 th:text="${#lists.size(savings)}">0</h4>
+                            <p class="text-muted">Jumla ya Michango</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="savings-card text-center">
+                            <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
+                            <h4>Tsh <span th:text="${#numbers.formatDecimal(totalSavings / #lists.size(savings), 0, 'COMMA', 2, 'POINT')}">0</span></h4>
+                            <p class="text-muted">Kiwango cha Wastani</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="savings-card text-center">
+                            <i class="fas fa-trophy fa-2x text-warning mb-2"></i>
+                            <h4>100%</h4>
+                            <p class="text-muted">Uadilifu wa Michango</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="savings-card text-center">
+                            <i class="fas fa-fire fa-2x text-danger mb-2"></i>
+                            <h4>3</h4>
+                            <p class="text-muted">Miezi Mfululizo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monthly Contribution Modal -->
+    <div class="modal fade" id="monthlyContributionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus"></i> Fanya Mchango wa Mwezi
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="monthlyContributionForm">
+                        <div class="mb-3">
+                            <label for="contributionAmount" class="form-label">Kiasi cha Mchango</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Tsh</span>
+                                <input type="number" class="form-control" id="contributionAmount" 
+                                       placeholder="50000" min="1000" step="100" required>
+                            </div>
+                            <small class="form-text text-muted">
+                                Kiasi cha chini: Tsh 1,000, Kiasi cha juu: Tsh 1,000,000
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="contributionDescription" class="form-label">Maelezo ya Mchango</label>
+                            <textarea class="form-control" id="contributionDescription" 
+                                      rows="3" placeholder="Maelezo ya mchango wako wa mwezi..." required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="contributionDate" class="form-label">Tarehe ya Mchango</label>
+                            <input type="date" class="form-control" id="contributionDate" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phoneNumber" class="form-label">Namba ya Simu (kwa Malipo ya M-Pesa/Tigo Pesa/Airtel Money)</label>
+                            <input type="tel" class="form-control" id="phoneNumber" 
+                                   placeholder="255754123456" pattern="255[0-9]{9}" required>
+                            <small class="form-text text-muted">
+                                Tumia namba ya simu iliyoandikwa kwa mfano: 255754123456
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="useAzamPay" checked>
+                                <label class="form-check-label" for="useAzamPay">
+                                    <i class="fas fa-mobile-alt"></i> Tumia AzamPay kwa malipo ya simu
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Maelekezo ya Mchango:</h6>
+                            <ul class="mb-0">
+                                <li>Hakikisha kiasi cha mwezi kulingana na kikundi lako</li>
+                                <li>Chagua tarehe ya mchango (kawaida ni ya leo)</li>
+                                <li>Ongeza maelezo ya ziada kama unahitaji</li>
+                                <li>Hifadhi nakala ya uthibitisho</li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Ghairi
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="makeMonthlyContribution()">
+                        <i class="fas fa-save"></i> Hifadhi Mchango
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Savings Modal -->
+    <div class="modal fade" id="additionalSavingsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-piggy-bank"></i> Ongeza Akiba ya Ziada
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="additionalSavingsForm">
+                        <div class="mb-3">
+                            <label for="additionalAmount" class="form-label">Kiasi cha Akiba ya Ziada</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Tsh</span>
+                                <input type="number" class="form-control" id="additionalAmount" 
+                                       placeholder="10000" min="1000" step="100" required>
+                            </div>
+                            <small class="form-text text-muted">
+                                Kiasi cha chini: Tsh 1,000, Kiasi cha juu: Tsh 500,000
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="additionalDescription" class="form-label">Maelezo ya Akiba ya Ziada</label>
+                            <textarea class="form-control" id="additionalDescription" 
+                                      rows="3" placeholder="Maelezo ya akiba yako ya ziada..." required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="additionalDate" class="form-label">Tarehe ya Kuweka Akiba</label>
+                            <input type="date" class="form-control" id="additionalDate" required>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Maelekezo ya Akiba ya Ziada:</h6>
+                            <ul class="mb-0">
+                                <li>Hakikisha kiasi cha ziada kulingana na uwezo wako</li>
+                                <li>Ongeza maelezo ya ziada kama unahitaji</li>
+                                <li>Chagua tarehe ya kuweka akiba</li>
+                                <li>Hifadhi nakala ya uthibitisho</li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Ghairi
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="makeAdditionalSavings()">
+                        <i class="fas fa-save"></i> Hifadhi Akiba
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Set today's date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('contributionDate').value = today;
+            document.getElementById('additionalDate').value = today;
+            
+            // Set current month for filter
+            const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+            const monthFilter = document.getElementById('monthFilter');
+            if (monthFilter) {
+                monthFilter.value = currentMonth;
+            }
+            
+            // Test type dropdown functionality
+            const typeFilter = document.getElementById('typeFilter');
+            if (typeFilter) {
+                // Add event listener for type filter
+                typeFilter.addEventListener('change', function() {
+                    filterSavings();
+                });
+            }
+            
+            // Test month filter
+            const monthFilterElement = document.getElementById('monthFilter');
+            if (monthFilterElement) {
+                // Add event listener for month filter
+                monthFilterElement.addEventListener('change', function() {
+                    filterSavings();
+                });
+            }
+        });
+        
+        // Make monthly contribution function
+        function makeMonthlyContribution() {
+            const amount = document.getElementById('contributionAmount').value;
+            const description = document.getElementById('contributionDescription').value;
+            const date = document.getElementById('contributionDate').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const useAzamPay = document.getElementById('useAzamPay').checked;
+            
+            // Validation
+            if (!amount || !description || !date || !phoneNumber) {
+                alert('Tafadhali jaza sehemu zote zinazohitajika!');
+                return;
+            }
+            
+            if (parseFloat(amount) < 1000) {
+                alert('Kiasi cha chini ni Tsh 1,000!');
+                return;
+            }
+            
+            if (parseFloat(amount) > 1000000) {
+                alert('Kiasi cha juu ni Tsh 1,000,000!');
+                return;
+            }
+            
+            // Validate phone number
+            if (!phoneNumber.match(/^255[0-9]{9}$/)) {
+                alert('Tafadhali weka namba ya simu sahihi (mfano: 255754123456)!');
+                return;
+            }
+            
+            // Show loading state
+            const saveBtn = event.target;
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inahifadhi...';
+            saveBtn.disabled = true;
+            
+            if (useAzamPay) {
+                // Use AzamPay API
+                console.log('🔧 Initiating AzamPay payment for savings contribution...');
+                
+                fetch('/api/payments/contribute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: /*[[${user.id}]]*/ 1,  // Current user ID (fallback to 1 for testing)
+                        amount: parseFloat(amount),
+                        phoneNumber: phoneNumber
+                    })
+                })
+                .then(response => response.text())
+                .then(text => {
+                    console.log('Raw AzamPay response:', text);
+                    if (text) {
+                        return JSON.parse(text);
+                    } else {
+                        return {message: "Empty response from server", status: "error"};
+                    }
+                })
+                .then(data => {
+                    console.log('AzamPay Response:', data);
+                    
+                    if (data.status === 'SUCCESS' || data.transactionId) {
+                        alert('✅ Malipo ya AzamPay yameanzishwa!\n\nTransaction ID: ' + data.transactionId + '\nStatus: ' + data.status + '\n\nUtafanya malipo kwa simu yako.\n\nKisha uende kwenye payment URL: ' + data.paymentUrl);
+                        
+                        // Open payment URL in new tab
+                        if (data.paymentUrl && data.paymentUrl !== 'http://localhost:8080/payments/success') {
+                            window.open(data.paymentUrl, '_blank');
+                        }
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('monthlyContributionModal'));
+                        modal.hide();
+                        
+                        // Clear form
+                        document.getElementById('monthlyContributionForm').reset();
+                        const today = new Date().toISOString().split('T')[0];
+                        document.getElementById('contributionDate').value = today;
+                        
+                        // Refresh page to show updated savings
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        alert('❌ Kuna tatizo na AzamPay: ' + (data.message || data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('AzamPay Error:', error);
+                    alert('❌ Hitilafu kwenye AzamPay: ' + error.message);
+                })
+                .finally(() => {
+                    // Restore button state
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                });
+            } else {
+                // Use traditional method (original code)
+                const formData = new FormData();
+                formData.append('amount', amount);
+                formData.append('description', description);
+                formData.append('contributionDate', date);
+                
+                // Send contribution request
+                fetch('/dashboard/savings/monthly-contribution', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Mchango wako wa mwezi umefanikiwa kuhifadhiwa!');
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('monthlyContributionModal'));
+                        modal.hide();
+                        
+                        // Clear form
+                        document.getElementById('monthlyContributionForm').reset();
+                        const today = new Date().toISOString().split('T')[0];
+                        document.getElementById('contributionDate').value = today;
+                        
+                        // Refresh page
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        alert('Kuna tatizo: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Hitilafu: ' + error.message);
+                })
+                .finally(() => {
+                    // Restore button state
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                });
+            }
+        }
+        
+        // Make additional savings function
+        function makeAdditionalSavings() {
+            const amount = document.getElementById('additionalAmount').value;
+            const description = document.getElementById('additionalDescription').value;
+            const date = document.getElementById('additionalDate').value;
+            
+            // Validation
+            if (!amount || !description || !date) {
+                alert('Tafadhali jaza sehemu zote zinazohitajika!');
+                return;
+            }
+            
+            if (parseFloat(amount) < 1000) {
+                alert('Kiasi cha chini ni Tsh 1,000!');
+                return;
+            }
+            
+            if (parseFloat(amount) > 500000) {
+                alert('Kiasi cha juu ni Tsh 500,000!');
+                return;
+            }
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('amount', amount);
+            formData.append('description', description);
+            formData.append('contributionDate', date);
+            
+            // Show loading state
+            const saveBtn = event.target;
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inahifadhi...';
+            saveBtn.disabled = true;
+            
+            // Send contribution request
+            fetch('/dashboard/savings/additional-savings', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Akiba yako ya ziada imetunzwa kuhifadhiwa!');
+                    
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('additionalSavingsModal'));
+                    modal.hide();
+                    
+                    // Clear form
+                    document.getElementById('additionalSavingsForm').reset();
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('additionalDate').value = today;
+                    
+                    // Update page content without reload
+                    updatePageContent();
+                    
+                    // If user is on transactions page, update it too
+                    if (window.location.pathname.includes('/transactions')) {
+                        updateTransactionsPage();
+                    }
+                } else {
+                    alert('Imeshindikana kuongeza akiba: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Kuna tatizo limetokea. Tafadhali jaribu tena.');
+            })
+            .finally(() => {
+                // Restore button state
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            });
+        }
+        
+        // Download savings report function
+        function downloadSavingsReport() {
+            // Show loading state
+            const downloadBtn = event.target;
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inapakua...';
+            downloadBtn.disabled = true;
+            
+            // Download report
+            fetch('/dashboard/savings/download-report', {
+                method: 'GET'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Create download link
+                    return response.blob();
+                } else {
+                    throw new Error('Failed to download report');
+                }
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ripoti_ya_akiba_' + new Date().toISOString().split('T')[0] + '.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                alert('Ripoti ya akiba imepakuliwa kikamilifu kama Excel!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Imeshindikana kupakua ripoti: ' + error.message);
+            })
+            .finally(() => {
+                // Restore button state
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            });
+        }
+        
+        // Filter savings function - Simplified and Fixed
+        function filterSavings() {
+            // Get filter values
+            const typeFilter = document.getElementById('typeFilter').value;
+            const monthFilter = document.getElementById('monthFilter').value;
+            
+            // Get all savings rows (skip "no data" row)
+            const savingsRows = Array.from(document.querySelectorAll('tbody tr')).filter(row => {
+                return !row.querySelector('td[colspan]');
+            });
+            
+            let visibleCount = 0;
+            
+            savingsRows.forEach((row, index) => {
+                try {
+                    // Get the cells
+                    const dateCell = row.cells[0]; // First cell - Date
+                    const typeCell = row.cells[1]; // Second cell - Type with badge
+                    
+                    if (!dateCell || !typeCell) {
+                        return;
+                    }
+                    
+                    // Get the text content
+                    const dateText = dateCell.textContent.trim();
+                    const typeText = typeCell.textContent.trim(); // This gets the badge text
+                    
+                    // Check type filter
+                    let typeMatch = true;
+                    if (typeFilter && typeFilter !== '') {
+                        typeMatch = typeText === typeFilter;
+                    }
+                    
+                    // Check month filter
+                    let monthMatch = true;
+                    if (monthFilter && monthFilter !== '') {
+                        // Parse date: "06/02/2026 14:30" -> "2026-02"
+                        const dateParts = dateText.split(' ')[0].split('/');
+                        const day = dateParts[0];
+                        const month = dateParts[1];
+                        const year = dateParts[2];
+                        const dateMonth = year + '-' + month.padStart(2, '0');
+                        
+                        monthMatch = dateMonth === monthFilter;
+                    }
+                    
+                    // Show/hide row
+                    const shouldShow = typeMatch && monthMatch;
+                    row.style.display = shouldShow ? '' : 'none';
+                    
+                    if (shouldShow) {
+                        visibleCount++;
+                    }
+                    
+                } catch (error) {
+                    // Silently handle errors
+                }
+            });
+            
+            // Handle no data message
+            const noDataRow = document.querySelector('tr td[colspan]');
+            if (noDataRow) {
+                const noDataTr = noDataRow.parentElement;
+                noDataTr.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        }
+        
+        // View savings details function
+        function viewSavings(savingsId) {
+            // Show loading state
+            const viewBtn = event.target.closest('button');
+            const originalText = viewBtn.innerHTML;
+            viewBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            viewBtn.disabled = true;
+            
+            // Fetch savings details
+            fetch('/dashboard/savings/' + savingsId + '/details', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Create modal content
+                    const modalHtml = `
+                        <div class="modal fade" id="savingsDetailsModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-eye"></i> Maelezo ya Mchango
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p><strong>Tarehe:</strong> ${data.savings.contributionDate}</p>
+                                                <p><strong>Aina:</strong> ${data.savings.type}</p>
+                                                <p><strong>Kiasi:</strong> Tsh ${data.savings.amount}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p><strong>Hali:</strong> <span class="badge bg-success">Imethibitishwa</span></p>
+                                                <p><strong>Kikundi:</strong> ${data.savings.groupName}</p>
+                                                <p><strong>ID ya Mchango:</strong> #${data.savings.id}</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <p><strong>Maelezo:</strong></p>
+                                            <p>${data.savings.description}</p>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-times"></i> Funga
+                                        </button>
+                                        <button type="button" class="btn btn-primary" onclick="downloadSavingsReceipt(${data.savings.id})">
+                                            <i class="fas fa-download"></i> Pakua Risiti
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Remove existing modal if any
+                    const existingModal = document.getElementById('savingsDetailsModal');
+                    if (existingModal) {
+                        existingModal.remove();
+                    }
+                    
+                    // Add modal to page and show it
+                    document.body.insertAdjacentHTML('beforeend', modalHtml);
+                    const modal = new bootstrap.Modal(document.getElementById('savingsDetailsModal'));
+                    modal.show();
+                    
+                    // Remove modal from DOM after it's hidden
+                    document.getElementById('savingsDetailsModal').addEventListener('hidden.bs.modal', function() {
+                        this.remove();
+                    });
+                } else {
+                    alert('Imeshindikana kupata maelezo: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Kuna tatizo limetokea. Tafadhali jaribu tena.');
+            })
+            .finally(() => {
+                // Restore button state
+                viewBtn.innerHTML = originalText;
+                viewBtn.disabled = false;
+            });
+        }
+        
+        // Download savings receipt function
+        function downloadSavingsReceipt(savingsId) {
+            // Show loading state
+            const downloadBtn = event.target.closest('button');
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            downloadBtn.disabled = true;
+            
+            // Download receipt
+            fetch('/dashboard/savings/' + savingsId + '/receipt', {
+                method: 'GET'
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('Failed to download receipt');
+                }
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'risiti_ya_mchango_' + savingsId + '.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                alert('Risiti imepakuliwa kikamilifu kama Excel!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Imeshindikana kupakua risiti: ' + error.message);
+            })
+            .finally(() => {
+                // Restore button state
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            });
+        }
+        
+        // Update page content without reload
+        function updatePageContent() {
+            // Reload the page to show updated savings
+            window.location.reload();
+        }
+        
+        // Update transactions page if user is there
+        function updateTransactionsPage() {
+            if (window.location.pathname.includes('/transactions')) {
+                fetch('/dashboard/api/transactions')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateTransactionsList(data.transactions);
+                        updateTransactionStatistics(data.totalIncome, data.totalExpenses, data.balance);
+                    })
+                    .catch(error => {
+                        console.error('Error updating transactions:', error);
+                    });
+            }
+        }
+        
+        // Update transactions list
+        function updateTransactionsList(transactions) {
+            const tbody = document.querySelector('tbody');
+            if (!tbody) return;
+            
+            // Clear existing rows except "no data" row
+            const existingRows = Array.from(tbody.querySelectorAll('tr')).filter(row => {
+                return !row.querySelector('td[colspan]');
+            });
+            existingRows.forEach(row => row.remove());
+            
+            // Add new transactions at the top
+            transactions.forEach(transaction => {
+                const row = createTransactionRow(transaction);
+                tbody.insertBefore(row, tbody.firstChild);
+            });
+        }
+        
+        // Create transaction row element
+        function createTransactionRow(transaction) {
+            const row = document.createElement('tr');
+            
+            // Format date
+            const date = new Date(transaction.transactionDate);
+            const formattedDate = date.toLocaleDateString('sw-TZ') + ' ' + date.toLocaleTimeString('sw-TZ', {hour: '2-digit', minute: '2-digit'});
+            
+            // Get transaction type display
+            let typeDisplay = '';
+            let typeClass = '';
+            switch(transaction.type) {
+                case 'SAVINGS_CONTRIBUTION':
+                    typeDisplay = 'Mchango wa Akiba';
+                    typeClass = 'bg-success';
+                    break;
+                case 'LOAN_DISBURSEMENT':
+                    typeDisplay = 'Toleo la Mkopo';
+                    typeClass = 'bg-info';
+                    break;
+                case 'LOAN_REPAYMENT':
+                    typeDisplay = 'Malipo ya Mkopo';
+                    typeClass = 'bg-primary';
+                    break;
+                case 'PENALTY_PAYMENT':
+                    typeDisplay = 'Malipo ya Faini';
+                    typeClass = 'bg-danger';
+                    break;
+                case 'REFUND':
+                    typeDisplay = 'Rudisho';
+                    typeClass = 'bg-warning';
+                    break;
+                case 'FEE':
+                    typeDisplay = 'Ada';
+                    typeClass = 'bg-secondary';
+                    break;
+                case 'INTEREST_PAYMENT':
+                    typeDisplay = 'Malipo ya Riba';
+                    typeClass = 'bg-dark';
+                    break;
+                default:
+                    typeDisplay = transaction.type;
+                    typeClass = 'bg-secondary';
+            }
+            
+            // Determine amount sign and class
+            let amountSign = '';
+            let amountClass = '';
+            if (transaction.type === 'SAVINGS_CONTRIBUTION' || 
+                transaction.type === 'LOAN_DISBURSEMENT' || 
+                transaction.type === 'REFUND') {
+                amountSign = '+';
+                amountClass = 'amount-positive';
+            } else {
+                amountSign = '-';
+                amountClass = 'amount-negative';
+            }
+            
+            // Get status display
+            let statusDisplay = '';
+            let statusClass = '';
+            switch(transaction.status) {
+                case 'COMPLETED':
+                    statusDisplay = 'Imekamilika';
+                    statusClass = 'bg-success';
+                    break;
+                case 'PENDING':
+                    statusDisplay = 'Inasubiri';
+                    statusClass = 'bg-warning';
+                    break;
+                case 'FAILED':
+                    statusDisplay = 'Imeshindwa';
+                    statusClass = 'bg-danger';
+                    break;
+                case 'CANCELLED':
+                    statusDisplay = 'Imefutwa';
+                    statusClass = 'bg-secondary';
+                    break;
+                default:
+                    statusDisplay = transaction.status;
+                    statusClass = 'bg-secondary';
+            }
+            
+            row.innerHTML = `
+                <td>${formattedDate}</td>
+                <td>${transaction.referenceNumber || '-'}</td>
+                <td><span class="badge ${typeClass}">${typeDisplay}</span></td>
+                <td>${transaction.description || '-'}</td>
+                <td class="${amountClass}">${amountSign}Tsh ${transaction.amount.toLocaleString('sw-TZ', {minimumFractionDigits: 2})}</td>
+                <td><span class="badge badge-status ${statusClass}">${statusDisplay}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewTransaction(${transaction.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            `;
+            
+            return row;
+        }
+        
+        // Update transaction statistics
+        function updateTransactionStatistics(totalIncome, totalExpenses, balance) {
+            // Update total income
+            const incomeElement = document.querySelector('.stat-card:nth-child(2) h3');
+            if (incomeElement) {
+                incomeElement.innerHTML = '+Tsh ' + totalIncome.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+            }
+            
+            // Update total expenses
+            const expensesElement = document.querySelector('.stat-card:nth-child(3) h3');
+            if (expensesElement) {
+                expensesElement.innerHTML = '-Tsh ' + totalExpenses.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+            }
+            
+            // Update balance
+            const balanceElement = document.querySelector('.stat-card:nth-child(4) h3');
+            if (balanceElement) {
+                const balanceClass = balance >= 0 ? 'amount-positive' : 'amount-negative';
+                const balanceSign = balance >= 0 ? '+' : '-';
+                balanceElement.className = 'mb-0 ' + balanceClass;
+                balanceElement.innerHTML = balanceSign + 'Tsh ' + Math.abs(balance).toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+            }
+            
+            // Update total transactions count
+            const countElement = document.querySelector('.stat-card:nth-child(1) h3');
+            if (countElement) {
+                const currentCount = parseInt(countElement.textContent) + 1;
+                countElement.textContent = currentCount;
+            }
+        }
+        
+        // Auto-refresh transactions every 30 seconds
+        setInterval(function() {
+            if (window.location.pathname.includes('/transactions')) {
+                fetch('/dashboard/api/transactions')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateTransactionsList(data.transactions);
+                        updateTransactionStatistics(data.totalIncome, data.totalExpenses, data.balance);
+                    })
+                    .catch(error => {
+                        console.error('Error auto-refreshing transactions:', error);
+                    });
+            }
+        }, 30000);
+        
+        // Auto-refresh dashboard data every 30 seconds
+        setInterval(function() {
+            fetch('/dashboard/api/summary')
+                .then(response => response.json())
+                .then(data => {
+                    // Update the financial summary cards on dashboard
+                    const savingsCard = document.querySelector('.stat-card:nth-child(1) h3');
+                    if (savingsCard) {
+                        savingsCard.innerHTML = 'Tsh ' + data.totalSavings.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+                    }
+                    
+                    const outstandingCard = document.querySelector('.stat-card:nth-child(2) h3');
+                    if (outstandingCard) {
+                        outstandingCard.innerHTML = 'Tsh ' + data.totalOutstanding.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+                    }
+                    
+                    const balanceCard = document.querySelector('.stat-card:nth-child(3) h3');
+                    if (balanceCard) {
+                        balanceCard.innerHTML = 'Tsh ' + data.availableBalance.toLocaleString('sw-TZ', {minimumFractionDigits: 2});
+                    }
+                })
+                .catch(error => {
+                    console.error('Error auto-refreshing dashboard:', error);
+                });
+        }, 30000);
+    </script>
+</body>
+</html>

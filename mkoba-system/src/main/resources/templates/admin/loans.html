@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Management - M-Koba System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-approved {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-defaulted {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
+        .status-late {
+            background-color: #ffeaa7;
+            color: #2d3436;
+        }
+        .loan-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .loan-card:hover {
+            transform: translateY(-2px);
+        }
+        .action-btn {
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <div class="text-center mb-4">
+                    <h4 class="text-white">
+                        <i class="fas fa-piggy-bank me-2"></i>
+                        M-Koba
+                    </h4>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Dashboard
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/groups}">
+                        <i class="fas fa-users me-2"></i>
+                        Groups
+                    </a>
+                    <a class="nav-link active" th:href="@{/admin/loans}">
+                        <i class="fas fa-hand-holding-usd me-2"></i>
+                        Loans
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/members}">
+                        <i class="fas fa-user-friends me-2"></i>
+                        Members
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/savings}">
+                        <i class="fas fa-piggy-bank me-2"></i>
+                        Savings
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/transactions}">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Transactions
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/settings}">
+                        <i class="fas fa-cog me-2"></i>
+                        Settings
+                    </a>
+                    <a class="nav-link text-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        Logout
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content p-4">
+                <div class="container-fluid">
+                    <!-- Header -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2 class="text-center mb-4">
+                                <i class="fas fa-hand-holding-usd me-3"></i>
+                                LOAN MANAGEMENT
+                            </h2>
+                        </div>
+                    </div>
+
+                    <!-- Success/Error Messages -->
+                    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span th:text="${success}"></span>
+                    </div>
+
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span th:text="${error}"></span>
+                    </div>
+
+                    <!-- Status Overview -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card loan-card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-chart-line me-2"></i>
+                                        Real-Time Loan Statistics
+                                        <button class="btn btn-sm btn-light float-end" onclick="refreshLoanStats()">
+                                            <i class="fas fa-sync-alt me-1"></i>
+                                            Refresh
+                                        </button>
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center mb-4">
+                                        <div class="col-md-2">
+                                            <div class="p-3 border rounded">
+                                                <h4 class="text-warning" th:text="${#lists.size(pendingLoans)}">0</h4>
+                                                <p class="mb-0 small">Pending</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="p-3 border rounded">
+                                                <h4 class="text-success" th:text="${#lists.size(approvedLoans)}">0</h4>
+                                                <p class="mb-0 small">Approved</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="p-3 border rounded">
+                                                <h4 class="text-danger" th:text="${#lists.size(rejectedLoans)}">0</h4>
+                                                <p class="mb-0 small">Rejected</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="p-3 border rounded">
+                                                <h4 class="text-danger" th:text="${#lists.size(defaultedLoans)}">0</h4>
+                                                <p class="mb-0 small">Defaulters</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="p-3 border rounded">
+                                                <h4 class="text-info" th:text="${activeLoans}">0</h4>
+                                                <p class="mb-0 small">Active</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="p-3 border rounded">
+                                                <h4 class="text-primary" th:text="${completedLoans}">0</h4>
+                                                <p class="mb-0 small">Completed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Summary Statistics -->
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-light rounded">
+                                                <h5 class="text-primary">
+                                                    <i class="fas fa-coins me-2"></i>
+                                                    Total Loans: <span th:text="${totalLoans}">0</span>
+                                                </h5>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="p-3 bg-light rounded">
+                                                <h5 class="text-success">
+                                                    <i class="fas fa-money-bill-wave me-2"></i>
+                                                    Total Amount: <span th:text="${#numbers.formatDecimal(totalLoanAmount, 1, 0)}" class="font-weight-bold">0</span> TZS
+                                                </h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loans Table -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card loan-card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-list me-2"></i>
+                                        All Loans
+                                    </h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="table-dark">
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Amount</th>
+                                                    <th>Interest</th>
+                                                    <th>Due Date</th>
+                                                    <th>Status</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr th:each="loan : ${allLoans}">
+                                                    <td th:text="${loan.user.firstName + ' ' + loan.user.lastName}">Asha</td>
+                                                    <td>
+                                                        <span class="badge bg-info">
+                                                            <i class="fas fa-money-bill-wave me-1"></i>
+                                                            <span th:text="${#numbers.formatDecimal(loan.amount, 1, 0)}">500k</span>
+                                                        </span>
+                                                    </td>
+                                                    <td th:text="${loan.interestRate + '%'}">10%</td>
+                                                    <td th:text="${loan.dueDate != null ? #temporals.format(loan.dueDate, 'dd/MM/yyyy') : 'Not Set'}">10/03/2026</td>
+                                                    <td>
+                                                        <span class="status-badge status-pending" th:if="${loan.status.name() == 'PENDING'}">
+                                                            <i class="fas fa-clock me-1"></i>
+                                                            Pending
+                                                        </span>
+                                                        <span class="status-badge status-info" th:if="${loan.status.name() == 'PENDING_ACCOUNTANT_CONFIRMATION'}">
+                                                            <i class="fas fa-user-tie me-1"></i>
+                                                            Pending Accountant
+                                                        </span>
+                                                        <span class="status-badge status-approved" th:if="${loan.status.name() == 'APPROVED'}">
+                                                            <i class="fas fa-check-circle me-1"></i>
+                                                            Approved
+                                                        </span>
+                                                        <span class="status-badge status-rejected" th:if="${loan.status.name() == 'REJECTED'}">
+                                                            <i class="fas fa-times-circle me-1"></i>
+                                                            Rejected
+                                                        </span>
+                                                        <span class="status-badge status-defaulted" th:if="${loan.status.name() == 'DEFAULTED'}">
+                                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                                            Defaulted
+                                                        </span>
+                                                        <span class="status-badge status-active" th:if="${loan.status.name() == 'ACTIVE'}">
+                                                            <i class="fas fa-play-circle me-1"></i>
+                                                            Active
+                                                        </span>
+                                                        <span class="status-badge status-completed" th:if="${loan.status.name() == 'COMPLETED'}">
+                                                            <i class="fas fa-check-double me-1"></i>
+                                                            Completed
+                                                        </span>
+                                                        <span class="status-badge status-late" th:if="${loan.status.name() == 'ACTIVE' and loan.dueDate != null and #temporals.createNow().isAfter(loan.dueDate)}">
+                                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                                            Late
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-sm btn-primary dropdown-toggle action-btn" type="button" id="loanActions" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="fas fa-cogs me-1"></i>
+                                                                Actions
+                                                            </button>
+                                                            <ul class="dropdown-menu" aria-labelledby="loanActions">
+                                                                <!-- View Details (Always Available) -->
+                                                                <li>
+                                                                    <a class="dropdown-item" th:href="@{/admin/loans/view/{id}(id=${loan.id})}">
+                                                                        <i class="fas fa-eye me-2 text-info"></i>
+                                                                        View Details
+                                                                    </a>
+                                                                </li>
+                                                                
+                                                                <!-- Approve (Only for Pending Loans) -->
+                                                                <li th:if="${loan.status.name() == 'PENDING'}">
+                                                                    <a class="dropdown-item text-success" href="#" 
+                                                                       data-bs-toggle="modal" 
+                                                                       data-bs-target="#approveModal" 
+                                                                       th:data-loan-id="${loan.id}"
+                                                                       th:data-current-interest="${loan.interestRate}">
+                                                                        <i class="fas fa-check me-2"></i>
+                                                                        Approve Loan
+                                                                    </a>
+                                                                </li>
+                                                                
+                                                                <!-- Reject (Only for Pending Loans) -->
+                                                                <li th:if="${loan.status.name() == 'PENDING'}">
+                                                                    <a class="dropdown-item text-danger" href="#" 
+                                                                       data-bs-toggle="modal" 
+                                                                       data-bs-target="#rejectModal" 
+                                                                       th:data-loan-id="${loan.id}">
+                                                                        <i class="fas fa-times me-2"></i>
+                                                                        Reject Loan
+                                                                    </a>
+                                                                </li>
+                                                                
+                                                                <!-- Accountant Confirm (Only for Pending Accountant Confirmation) -->
+                                                                <li th:if="${loan.status.name() == 'PENDING_ACCOUNTANT_CONFIRMATION'}">
+                                                                    <a class="dropdown-item text-info" href="#" 
+                                                                       th:onclick="${#authentication.name != null and (#strings.contains(#authentication.authorities, 'ROLE_TREASURER') or #strings.contains(#authentication.authorities, 'ROLE_ADMIN'))} ? 'openConfirmModal(' + ${loan.id} + ')' : 'showPermissionAlert()'">
+                                                                        <i class="fas fa-user-tie me-2"></i>
+                                                                        Treasurer Confirm
+                                                                    </a>
+                                                                </li>
+                                                                
+                                                                <!-- Activate (Only for Approved Loans) -->
+                                                                <li th:if="${loan.status.name() == 'APPROVED'}">
+                                                                    <a class="dropdown-item text-info" href="#" 
+                                                                       data-bs-toggle="modal" 
+                                                                       data-bs-target="#activateModal" 
+                                                                       th:data-loan-id="${loan.id}">
+                                                                        <i class="fas fa-play me-2"></i>
+                                                                        Activate Loan
+                                                                    </a>
+                                                                </li>
+                                                                
+                                                                <!-- Disburse Loan (Only for Approved Loans) -->
+                                                                <li th:if="${loan.status.name() == 'APPROVED'}">
+                                                                    <a class="dropdown-item text-success" href="#" 
+                                                                       th:onclick="'disburseLoan(' + ${loan.id} + ')'">
+                                                                        <i class="fas fa-money-bill-wave me-2"></i>
+                                                                        Disburse via AzamPay
+                                                                    </a>
+                                                                </li>
+                                                                
+                                                                <!-- Penalize (Only for Active/Defaulted Loans) -->
+                                                                <li th:if="${loan.status.name() == 'ACTIVE' or loan.status.name() == 'DEFAULTED'}">
+                                                                    <a class="dropdown-item text-warning" href="#" 
+                                                                       data-bs-toggle="modal" 
+                                                                       data-bs-target="#penaltyModal" 
+                                                                       th:data-loan-id="${loan.id}">
+                                                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                                                        Apply Penalty
+                                                                    </a>
+                                                                </li>
+                                                                
+                                                                <!-- Mark as Completed (Only for Active Loans) -->
+                                                                <li th:if="${loan.status.name() == 'ACTIVE'}">
+                                                                    <a class="dropdown-item text-primary" href="#" 
+                                                                       th:href="@{/admin/loans/complete/{id}(id=${loan.id})}">
+                                                                        <i class="fas fa-check-circle me-2"></i>
+                                                                        Mark Completed
+                                                                    </a>
+                                                                </li>
+                                                                
+                                                                <!-- Reactivate (Only for Defaulted Loans) -->
+                                                                <li th:if="${loan.status.name() == 'DEFAULTED'}">
+                                                                    <a class="dropdown-item text-info" href="#" 
+                                                                       th:href="@{/admin/loans/reactivate/{id}(id=${loan.id})}">
+                                                                        <i class="fas fa-redo me-2"></i>
+                                                                        Reactivate Loan
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve Modal -->
+    <div class="modal fade" id="approveModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Approve Loan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/loans/approve/{id}(id=0)}" method="post" id="approveForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="interestRate" class="form-label">Interest Rate (%)</label>
+                            <input type="number" class="form-control" id="interestRate" name="interestRate" 
+                                   step="0.1" min="0" max="50" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="repaymentPeriod" class="form-label">Repayment Period (Months)</label>
+                            <input type="number" class="form-control" id="repaymentPeriod" name="repaymentPeriod" 
+                                   min="1" max="60" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="approvalReason" class="form-label">Reason for Approval (Optional)</label>
+                            <textarea class="form-control" id="approvalReason" name="approvalReason" rows="3" 
+                                      placeholder="Mention why this loan is being approved..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>
+                            Approve Loan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activate Modal -->
+    <div class="modal fade" id="activateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-play me-2"></i>
+                        Activate Loan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/loans/activate/{id}(id=0)}" method="post" id="activateForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="dueDate" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="dueDate" name="dueDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="repaymentPeriod" class="form-label">Repayment Period (Months)</label>
+                            <input type="number" class="form-control" id="repaymentPeriod" name="repaymentPeriod" 
+                                   min="1" max="60" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-play me-2"></i>
+                            Activate Loan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-times-circle me-2"></i>
+                        Reject Loan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/loans/reject/{id}(id=0)}" method="post" id="rejectForm">
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Warning:</strong> This action will reject the loan application. Please provide a clear reason for the rejection.
+                        </div>
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="reason" name="reason" rows="4" required 
+                                      placeholder="Please explain why this loan is being rejected..."></textarea>
+                            <small class="text-muted">Examples: Insufficient collateral, low credit score, incomplete documentation, etc.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="rejectionType" class="form-label">Rejection Type</label>
+                            <select class="form-select" id="rejectionType" name="rejectionType">
+                                <option value="">Select rejection type...</option>
+                                <option value="INSUFFICIENT_COLLATERAL">Insufficient Collateral</option>
+                                <option value="LOW_CREDIT_SCORE">Low Credit Score</option>
+                                <option value="INCOMPLETE_DOCUMENTATION">Incomplete Documentation</option>
+                                <option value="HIGH_DEBT_RATIO">High Debt Ratio</option>
+                                <option value="BUSINESS_RISK">Business Risk</option>
+                                <option value="OTHER">Other Reason</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-2"></i>
+                            Reject Loan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accountant Confirm Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-coins me-2"></i>
+                        Treasurer Confirmation
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/loans/confirm/{id}(id=0)}" method="post" id="confirmForm">
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Treasurer Confirmation:</strong> Please review and confirm this loan approval. This action will finalize the loan approval process.
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmationReason" class="form-label">Confirmation Reason (Optional)</label>
+                            <textarea class="form-control" id="confirmationReason" name="confirmationReason" rows="3" 
+                                      placeholder="Add any notes or confirmation details..."></textarea>
+                            <small class="text-muted">This will be visible to the loan applicant</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-coins me-2"></i>
+                            Confirm Loan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Penalty Modal -->
+    <div class="modal fade" id="penaltyModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Apply Penalty
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/admin/loans/penalize/{id}(id=0)}" method="post" id="penaltyForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="penaltyAmount" class="form-label">Penalty Amount (TZS)</label>
+                            <input type="number" class="form-control" id="penaltyAmount" name="penaltyAmount" 
+                                   step="1000" min="0" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Apply Penalty
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Real-time refresh function
+        function refreshLoanStats() {
+            location.reload();
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(function() {
+            console.log('🔄 Auto-refreshing loan statistics...');
+            location.reload();
+        }, 30000);
+        
+        // Handle Approve Modal
+        document.getElementById('approveModal').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const loanId = button.getAttribute('data-loan-id');
+            const currentInterest = button.getAttribute('data-current-interest');
+            
+            const form = document.getElementById('approveForm');
+            form.action = '/admin/loans/approve/' + loanId;
+            
+            // Set current interest rate as default
+            document.getElementById('interestRate').value = currentInterest || '10';
+        });
+
+        // Handle Activate Modal
+        document.getElementById('activateModal').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const loanId = button.getAttribute('data-loan-id');
+            const form = document.getElementById('activateForm');
+            form.action = '/admin/loans/activate/' + loanId;
+            
+            // Set default due date (6 months from now)
+            const defaultDueDate = new Date();
+            defaultDueDate.setMonth(defaultDueDate.getMonth() + 6);
+            document.getElementById('dueDate').value = defaultDueDate.toISOString().split('T')[0];
+            
+            // Set default repayment period
+            document.getElementById('repaymentPeriod').value = '6';
+        });
+
+        // Handle Reject Modal
+        document.getElementById('rejectModal').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const loanId = button.getAttribute('data-loan-id');
+            
+            const form = document.getElementById('rejectForm');
+            form.action = '/admin/loans/reject/' + loanId;
+        });
+
+        // Handle Penalty Modal
+        document.getElementById('penaltyModal').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const loanId = button.getAttribute('data-loan-id');
+            
+            const form = document.getElementById('penaltyForm');
+            form.action = '/admin/loans/penalize/' + loanId;
+        });
+        
+        // Show last refresh time
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            console.log('📊 Loan page loaded at:', now.toLocaleString());
+        });
+        
+        // Permission check functions
+        function showPermissionAlert() {
+            alert('You have no permission to confirm loans. Only treasurers and admins can confirm loans.');
+        }
+        
+        function openConfirmModal(loanId) {
+            const form = document.getElementById('confirmForm');
+            form.action = '/admin/loans/confirm/' + loanId;
+            
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            modal.show();
+        }
+        
+        // AzamPay integration functions
+        function disburseLoan(loanId) {
+            if (confirm('Are you sure you want to disburse this loan via AzamPay?')) {
+                fetch(`/api/payments/disburse/${loanId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Payment initiated successfully! Transaction ID: ' + data.transactionId);
+                        // Redirect to payment page if available
+                        if (data.paymentUrl) {
+                            window.open(data.paymentUrl, '_blank');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to initiate payment');
+                });
+            }
+        }
+        
+        function repayLoan(loanId) {
+            const amount = prompt('Enter repayment amount:');
+            if (amount && !isNaN(amount)) {
+                fetch(`/api/payments/repay/${loanId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        phoneNumber: '255754123456' // Test number
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Repayment initiated successfully! Transaction ID: ' + data.transactionId);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to initiate repayment');
+                });
+            }
+        }
+        
+        function contributeSavings(userId) {
+            const amount = prompt('Enter contribution amount:');
+            if (amount && !isNaN(amount)) {
+                fetch('/api/payments/contribute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        amount: amount,
+                        phoneNumber: '255754123456' // Test number
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                    } else {
+                        alert('Contribution initiated successfully! Transaction ID: ' + data.transactionId);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to initiate contribution');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

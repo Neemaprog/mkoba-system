@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - M-Koba System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            min-height: 100vh;
+            border-radius: 20px 0 0 20px;
+            padding: 30px;
+        }
+        
+        /* Box Styles */
+        .announcement-box, .reminder-box, .history-box, .user-notification-box {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .user-notification-box {
+            border-left: 4px solid #28a745;
+        }
+        
+        .box-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .user-notification-box .box-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .box-header h5 {
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+            padding: 15px 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        
+        .form-input:focus, .form-textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+            background: white;
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        
+        /* Checkbox Group */
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #667eea;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        /* Buttons */
+        .btn-send, .btn-save, .btn-user-send {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 15px 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-user-send {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .btn-send:hover, .btn-save:hover, .btn-user-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        /* History Table */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .history-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .history-table td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+        
+        .history-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        /* Type Badges */
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .type-badge.contribution {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .type-badge.loan {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .type-badge.announcement {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .type-badge.system {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .type-badge.reminder {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-badge.sent {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-badge.delivered {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-badge.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+        }
+        
+        /* Tabs Navigation */
+        .tabs-navigation {
+            display: flex;
+            gap: 5px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-link {
+            background: #f8f9fa;
+            color: #6c757d;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .tab-link:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .tab-link.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .tab-link i {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar p-3">
+                <h4 class="mb-4"><i class="fas fa-bell me-2"></i>M-Koba</h4>
+                <nav class="nav flex-column">
+                    <a href="/admin/dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="/admin/groups-management" class="nav-link">
+                        <i class="fas fa-users me-2"></i>Groups Management
+                    </a>
+                    <a href="/admin/members" class="nav-link">
+                        <i class="fas fa-user me-2"></i>Members
+                    </a>
+                    <a href="/admin/savings" class="nav-link">
+                        <i class="fas fa-piggy-bank me-2"></i>Savings
+                    </a>
+                    <a href="/admin/loans" class="nav-link">
+                        <i class="fas fa-hand-holding-usd me-2"></i>Loans
+                    </a>
+                    <a href="/admin/transactions" class="nav-link">
+                        <i class="fas fa-exchange-alt me-2"></i>Transactions
+                    </a>
+                    <a href="/admin/reports" class="nav-link">
+                        <i class="fas fa-chart-bar me-2"></i>Reports
+                    </a>
+                    <a href="/admin/notifications" class="nav-link active">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </a>
+                    <a href="/admin/settings" class="nav-link">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 main-content">
+                <!-- Success/Error Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div class="row">
+                    <!-- Send Announcement Section -->
+                    <div class="col-md-4 mb-4">
+                        <div class="announcement-box">
+                            <div class="box-header">
+                                <h5><i class="fas fa-paper-plane me-2"></i>SEND ANNOUNCEMENT</h5>
+                            </div>
+                            <form th:action="@{/admin/notifications/announcement}" method="post">
+                                <div class="form-group">
+                                    <label>Title:</label>
+                                    <input type="text" name="title" class="form-input" placeholder="Meeting Reminder" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Target Group:</label>
+                                    <select name="targetGroup" class="form-input">
+                                        <option value="all">All Groups</option>
+                                        <option th:each="group : ${groups}" 
+                                                th:value="${group.id}" 
+                                                th:text="${group.name}">Group Name</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Send Via:</label>
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="sendVia" value="app" checked> App
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="sendVia" value="sms" checked> SMS
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="sendVia" value="email"> Email
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Message:</label>
+                                    <textarea name="message" class="form-textarea" rows="4" required>Kesho kuna mkutano saa 10 jioni. Tafadhali hudhuria.</textarea>
+                                </div>
+                                <button type="submit" class="btn-send">
+                                    <i class="fas fa-paper-plane me-2"></i> Send Notification
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Send to Individual User Section -->
+                    <div class="col-md-4 mb-4">
+                        <div class="user-notification-box">
+                            <div class="box-header">
+                                <h5><i class="fas fa-user me-2"></i>SEND TO USER</h5>
+                            </div>
+                            <form th:action="@{/admin/notifications/user}" method="post">
+                                <div class="form-group">
+                                    <label>Select User:</label>
+                                    <select name="userId" class="form-input" required>
+                                        <option value="">Choose User</option>
+                                        <option th:each="user : ${users}" 
+                                                th:value="${user.id}" 
+                                                th:text="${user.firstName + ' ' + user.lastName}">User Name</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Title:</label>
+                                    <input type="text" name="title" class="form-input" placeholder="Personal Reminder" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Send Via:</label>
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="sendVia" value="app" checked> App
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="sendVia" value="sms" checked> SMS
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="sendVia" value="email"> Email
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Message:</label>
+                                    <textarea name="message" class="form-textarea" rows="4" required>Tafadhali nenda kwenye account yako kwa ajira zaidi.</textarea>
+                                </div>
+                                <button type="submit" class="btn-user-send">
+                                    <i class="fas fa-user-plus me-2"></i> Send to User
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Automatic Reminders Section -->
+                    <div class="col-md-6 mb-4">
+                        <div class="reminder-box">
+                            <div class="box-header">
+                                <h5><i class="fas fa-clock me-2"></i>AUTOMATIC REMINDERS</h5>
+                            </div>
+                            <form th:action="@{/admin/notifications/reminders}" method="post">
+                                <div class="form-group">
+                                    <label>Contribution Reminder:</label>
+                                    <select name="contributionReminder" class="form-input">
+                                        <option value="1">1 Day Before</option>
+                                        <option value="2">2 Days Before</option>
+                                        <option value="3">3 Days Before</option>
+                                        <option value="7">1 Week Before</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Loan Reminder:</label>
+                                    <select name="loanReminder" class="form-input">
+                                        <option value="1">1 Day Before</option>
+                                        <option value="2" selected>2 Days Before</option>
+                                        <option value="3">3 Days Before</option>
+                                        <option value="7">1 Week Before</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Defaulter Alert:</label>
+                                    <div class="toggle-switch">
+                                        <label class="switch">
+                                            <input type="checkbox" name="defaulterAlert" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="toggle-label">ON/OFF</span>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-save">
+                                    <i class="fas fa-save me-2"></i> Save Settings
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification History Section -->
+                <div class="col-md-12">
+                    <div class="history-box">
+                        <div class="box-header">
+                            <h5><i class="fas fa-history me-2"></i>NOTIFICATION HISTORY</h5>
+                            <!-- Tabs Navigation -->
+                            <div class="tabs-navigation">
+                                <a th:href="@{/admin/notifications(tab='all')}" 
+                                   th:class="${activeTab == 'all' ? 'tab-link active' : 'tab-link'}">
+                                    <i class="fas fa-list me-1"></i> All
+                                </a>
+                                <a th:href="@{/admin/notifications(tab='announcements')}" 
+                                   th:class="${activeTab == 'announcements' ? 'tab-link active' : 'tab-link'}">
+                                    <i class="fas fa-bullhorn me-1"></i> Announcements
+                                </a>
+                                <a th:href="@{/admin/notifications(tab='reminders')}" 
+                                   th:class="${activeTab == 'reminders' ? 'tab-link active' : 'tab-link'}">
+                                    <i class="fas fa-clock me-1"></i> Reminders
+                                </a>
+                                <a th:href="@{/admin/notifications(tab='system')}" 
+                                   th:class="${activeTab == 'system' ? 'tab-link active' : 'tab-link'}">
+                                    <i class="fas fa-cog me-1"></i> System
+                                </a>
+                                <a th:href="@{/admin/notifications(tab='loans')}" 
+                                   th:class="${activeTab == 'loans' ? 'tab-link active' : 'tab-link'}">
+                                    <i class="fas fa-hand-holding-usd me-1"></i> Loans
+                                </a>
+                                <a th:href="@{/admin/notifications(tab='contributions')}" 
+                                   th:class="${activeTab == 'contributions' ? 'tab-link active' : 'tab-link'}">
+                                    <i class="fas fa-piggy-bank me-1"></i> Contributions
+                                </a>
+                                <a th:href="@{/admin/notifications(tab='replies')}" 
+                                   th:class="${activeTab == 'replies' ? 'tab-link active' : 'tab-link'}">
+                                    <i class="fas fa-reply me-1"></i> User Replies
+                                </a>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Message</th>
+                                        <th>Recipient</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="notification : ${notifications}">
+                                        <td th:text="${#temporals.format(notification.createdAt, 'dd/MM/yy HH:mm')}">05/02/26</td>
+                                        <td>
+                                            <span th:class="'type-badge ' + ${#strings.toLowerCase(notification.type.name())}" 
+                                                  th:text="${notification.type.name()}">Contribution</span>
+                                        </td>
+                                        <td>
+                                            <div th:if="${notification.title != null and notification.title.startsWith('REPLY:')}">
+                                                <strong th:text="${notification.title}">REPLY: Original Title</strong>
+                                                <div style="font-size: 12px; color: #6c757d; margin-top: 5px;" 
+                                                     th:text="${notification.message}">Reply message content</div>
+                                            </div>
+                                            <div th:if="${notification.title == null or not notification.title.startsWith('REPLY:')}">
+                                                <div th:text="${notification.title != null ? notification.title : 'No Title'}">Title</div>
+                                                <div style="font-size: 12px; color: #6c757d; margin-top: 5px;" 
+                                                     th:text="${notification.message}">Message content</div>
+                                            </div>
+                                        </td>
+                                        <td th:text="${notification.recipientDisplayName}">Umoja Group</td>
+                                        <td>
+                                            <span th:class="'status-badge ' + ${#strings.toLowerCase(notification.deliveryStatus)}" 
+                                                  th:text="${notification.deliveryStatus}">Sent</span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(notifications)}">
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="fas fa-bell-slash me-2"></i>
+                                            No notifications found
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

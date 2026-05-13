@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="sw" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Group - M-Koba System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav-link.active {
+            background: rgba(52, 152, 219, 0.3);
+            color: white;
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content {
+            background: white;
+            min-height: 100vh;
+            padding: 30px;
+        }
+        
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <div class="text-center mb-4">
+                    <h4 class="text-white">
+                        <i class="fas fa-piggy-bank me-2"></i>
+                        M-Koba
+                    </h4>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Dashboard
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/groups-management}">
+                        <i class="fas fa-users-cog me-2"></i>
+                        Groups Management
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/loans}">
+                        <i class="fas fa-hand-holding-usd me-2"></i>
+                        Loans
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/members}">
+                        <i class="fas fa-user-friends me-2"></i>
+                        Members
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/savings}">
+                        <i class="fas fa-piggy-bank me-2"></i>
+                        Savings
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/transactions}">
+                        <i class="fas fa-exchange-alt me-2"></i>
+                        Transactions
+                    </a>
+                    <a class="nav-link" th:href="@{/admin/settings}">
+                        <i class="fas fa-cog me-2"></i>
+                        Settings
+                    </a>
+                    <a class="nav-link text-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        Logout
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Form Header -->
+                <div class="form-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0">
+                                <i class="fas fa-edit me-3"></i>
+                                Edit Group
+                            </h2>
+                            <p class="mb-0 opacity-75" th:if="${group != null}">Create new group</p>
+                            <p class="mb-0 opacity-75" th:if="${group != null}">Edit group: <span th:text="${group.name}">Group Name</span></p>
+                        </div>
+                        <div>
+                            <a th:href="@{/admin/groups-management}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Back to Groups
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success/Error Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Edit Form -->
+                <div class="form-container">
+                    <form th:action="@{/admin/groups-management/edit}" th:object="${group}" method="post">
+                        <input type="hidden" th:field="*{id}" />
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">
+                                    Group Name <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="name" th:field="*{name}" 
+                                       placeholder="Enter group name" required>
+                                <div th:if="${#fields.hasErrors('name')}" class="text-danger small">
+                                    <span th:errors="*{name}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="meetingFrequency" class="form-label">
+                                    Meeting Frequency <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="meetingFrequency" th:field="*{meetingFrequency}" 
+                                       placeholder="e.g., Kila Jumamosi" required>
+                                <div th:if="${#fields.hasErrors('meetingFrequency')}" class="text-danger small">
+                                    <span th:errors="*{meetingFrequency}"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                Description <span class="required">*</span>
+                            </label>
+                            <textarea class="form-control" id="description" th:field="*{description}" 
+                                      rows="3" placeholder="Describe the group's purpose and activities" required></textarea>
+                            <div th:if="${#fields.hasErrors('description')}" class="text-danger small">
+                                <span th:errors="*{description}"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="monthlyContribution" class="form-label">
+                                    Monthly Contribution (TZS) <span class="required">*</span>
+                                </label>
+                                <input type="number" class="form-control" id="monthlyContribution" th:field="*{monthlyContribution}" 
+                                       placeholder="20000" step="1000" min="1000" required>
+                                <div th:if="${#fields.hasErrors('monthlyContribution')}" class="text-danger small">
+                                    <span th:errors="*{monthlyContribution}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="maxLoanAmount" class="form-label">
+                                    Maximum Loan Amount (TZS) <span class="required">*</span>
+                                </label>
+                                <input type="number" class="form-control" id="maxLoanAmount" th:field="*{maxLoanAmount}" 
+                                       placeholder="500000" step="10000" min="10000" required>
+                                <div th:if="${#fields.hasErrors('maxLoanAmount')}" class="text-danger small">
+                                    <span th:errors="*{maxLoanAmount}"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="interestRate" class="form-label">
+                                    Interest Rate (%) <span class="required">*</span>
+                                </label>
+                                <input type="number" class="form-control" id="interestRate" th:field="*{interestRate}" 
+                                       placeholder="10" step="0.1" min="0" max="50" required>
+                                <div th:if="${#fields.hasErrors('interestRate')}" class="text-danger small">
+                                    <span th:errors="*{interestRate}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="active" class="form-label">
+                                    Group Status
+                                </label>
+                                <select class="form-control" id="active" th:field="*{active}">
+                                    <option value="true" th:selected="${group != null ? true : group.active}">Active</option>
+                                    <option value="false" th:selected="${group != null ? false : !group.active}">Inactive</option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('active')}" class="text-danger small">
+                                    <span th:errors="*{active}"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                <span th:text="${group != null ? 'Create Group' : 'Update Group'}">Update Group</span>
+                            </button>
+                            <a th:href="@{/admin/groups-management}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
