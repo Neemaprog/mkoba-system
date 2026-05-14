@@ -18,12 +18,6 @@ public class AzamPayConfig {
     @Value("${azampay.api.url}")
     private String apiUrl;
     
-    @Value("${azampay.callback.url}")
-    private String callbackUrl;
-    
-    @Value("${azampay.redirect.url}")
-    private String redirectUrl;
-    
     // Getters
     public String getClientId() {
         return clientId;
@@ -39,13 +33,5 @@ public class AzamPayConfig {
     
     public String getApiUrl() {
         return apiUrl;
-    }
-    
-    public String getCallbackUrl() {
-        return callbackUrl;
-    }
-    
-    public String getRedirectUrl() {
-        return redirectUrl;
     }
 }

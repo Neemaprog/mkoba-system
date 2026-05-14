@@ -1,6 +1,7 @@
 package com.mkoba.mkoba_system.services;
 
 import com.mkoba.mkoba_system.config.AzamPayConfig;
+import com.mkoba.mkoba_system.utils.UrlBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,9 @@ public class AzamPayService {
     
     @Autowired
     private AzamPayConfig azamPayConfig;
+    
+    @Autowired
+    private UrlBuilder urlBuilder;
     
     @Autowired
     private RestTemplate restTemplate;
@@ -55,8 +59,8 @@ public class AzamPayService {
             paymentRequest.put("provider", provider);
             
             paymentRequest.put("additionalProperties", Map.of(
-                "callbackUrl", azamPayConfig.getCallbackUrl(),
-                "redirectUrl", azamPayConfig.getRedirectUrl(),
+                "callbackUrl", urlBuilder.buildCallbackUrl(),
+                "redirectUrl", urlBuilder.buildRedirectUrl(),
                 "description", description
             ));
             
@@ -116,7 +120,7 @@ public class AzamPayService {
                 fallbackResponse.put("status", "PENDING");
                 fallbackResponse.put("message", "Payment initiated but waiting for confirmation");
                 fallbackResponse.put("transactionId", "TXN_" + System.currentTimeMillis());
-                fallbackResponse.put("paymentUrl", azamPayConfig.getRedirectUrl());
+                fallbackResponse.put("paymentUrl", urlBuilder.buildRedirectUrl());
                 return fallbackResponse;
             }
             
@@ -183,14 +187,14 @@ public class AzamPayService {
         mockResponse.put("status", "PENDING");
         mockResponse.put("message", "Mock payment initiated successfully for testing");
         mockResponse.put("transactionId", "MOCK_TXN_" + System.currentTimeMillis());
-        mockResponse.put("paymentUrl", azamPayConfig.getRedirectUrl() + "?mock=true&transactionId=" + mockResponse.get("transactionId"));
+        mockResponse.put("paymentUrl", urlBuilder.buildRedirectUrl() + "?mock=true&transactionId=" + mockResponse.get("transactionId"));
         mockResponse.put("amount", amount);
         mockResponse.put("phoneNumber", phoneNumber);
         mockResponse.put("currency", "TZS");
         mockResponse.put("reference", reference);
         mockResponse.put("description", description);
-        mockResponse.put("callbackUrl", azamPayConfig.getCallbackUrl());
-        mockResponse.put("redirectUrl", azamPayConfig.getRedirectUrl());
+        mockResponse.put("callbackUrl", urlBuilder.buildCallbackUrl());
+        mockResponse.put("redirectUrl", urlBuilder.buildRedirectUrl());
         mockResponse.put("sandbox", true);
         
         System.out.println("✅ Mock AzamPay Response: " + mockResponse);

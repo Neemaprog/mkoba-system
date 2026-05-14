@@ -12,3 +12,5 @@ services:
         value: m_koba_user
       - key: DB_PASSWORD
         value: YjLcBw3aqh2x9XsBQzGqJYDYOI6o9uhG
+      - key: BASE_URL
+        value: https://mkoba-system1.onrender.com
