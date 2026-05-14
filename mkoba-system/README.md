@@ -18,12 +18,14 @@ Mfumo wa Mkoba kwa usimamizi wa vikundi vya akiba na mikopo.
    - `fix-database.sql`
 
 Au tumia batch files:
+
 - `setup-postgresql.bat` (kwa Windows)
 - `setup-postgresql.ps1` (kwa PowerShell)
 
 ## Kuendesha Mfumo
 
 1. Nakala repository:
+
    ```
    git clone <URL ya repo>
    cd mkoba-system
@@ -32,10 +34,13 @@ Au tumia batch files:
 2. Hakikisha database imeanzishwa.
 
 3. Endesha application:
+
    ```
    mvn spring-boot:run
    ```
+
    Au:
+
    ```
    ./mvnw spring-boot:run
    ```
